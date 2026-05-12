@@ -1,5 +1,7 @@
 ﻿using FR_WS2_BaseLab.Models;
 using FR_WS2_BaseLab.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace FR_WS2_BaseLab.Services.Implementations;
 public class PostService : IPostService
@@ -15,38 +17,159 @@ public class PostService : IPostService
         _logger = logger;
     }
 
-    public Task<ServiceResult<Post>> CreateAsync(Post post, string? userId)
+    public async Task<ServiceResult<Post>> CreateAsync(Post post, string? userId)
     {
-        throw new NotImplementedException();
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return ServiceResult<Post>.Failure("Vous devez être connecté.");
+        }
+
+        try
+        {
+            post.Date = DateTime.Now;
+            post.UserId = userId;
+            _context.Add(post);
+            await _context.SaveChangesAsync();
+
+            return ServiceResult<Post>.Success(post);
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex,
+                "Erreur BD lors de la création d'un message.");
+            return ServiceResult<Post>.Failure(
+                "Le message n'a pas pu être créé.");
+        }
     }
 
-    public Task<Services.ServiceResult<Post>> DeleteAsync(int id)
+    public async Task<ServiceResult<Post>> DeleteAsync(int id)
     {
-        throw new NotImplementedException();
+        var post = await _context.Posts.FindAsync(id);
+        if (post is null)
+        {
+            return ServiceResult<Post>.Failure("Le message est introuvable.");
+        }
+
+        try
+        {
+            _context.Posts.Remove(post);
+            await _context.SaveChangesAsync();
+            return ServiceResult<Post>.Success(post);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Erreur BD lors de la suppression du message {PostId}.", id);
+
+            return ServiceResult<Post>.Failure(
+                "Le message n'a pas pu être supprimé.");
+        }
     }
 
-    public Task<bool> ExistsAsync(int id)
+    public async Task<bool> ExistsAsync(int id)
     {
-        throw new NotImplementedException();
+        return await _context.Posts.AnyAsync(post => post.Id == id);
     }
 
-    public Task<ServiceResult<List<Post>>> GetByTopicIdAsync(int topicId)
+    public async Task<ServiceResult<List<Post>>> GetByTopicIdAsync(int topicId)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var posts = await _context.Posts
+                .AsNoTracking()
+                .Include(p => p.User)
+                .Where(p => p.TopId == topicId)
+                .OrderBy(p => p.Date)
+                .ToListAsync();
+            return ServiceResult<List<Post>>.Success(posts);
+
+        }
+
+        catch (Exception ex)
+
+        {
+            _logger.LogError(ex,
+                "Erreur lors du chargement des messages du sujet {TopicId}.",
+                topicId);
+
+            return ServiceResult<List<Post>>.Failure(
+                "Les messages n'ont pas pu être chargés.");
+        }
     }
 
-    public Task<ServiceResult<Post>> GetDetailsAsync(int id)
+    public async Task<ServiceResult<Post>> GetDetailsAsync(int id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var post = await _context.Posts
+                 .Include(p => p.Top)
+                 .Include(p => p.User)
+                 .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (post is null)
+            {
+                return ServiceResult<Post>.Failure("Le message est introuvable.");
+            }
+            return ServiceResult<Post>.Success(post);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Erreur lors du chargement du message {PostId}.", id);
+
+            return ServiceResult<Post>.Failure(
+                "Le message n'a pas pu être chargé.");
+        }
     }
 
-    public Task<ServiceResult<Post>> GetForEditAsync(int id)
+    public async Task<ServiceResult<Post>> GetForEditAsync(int id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var post = await _context.Posts
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (post is null)
+            {
+                return ServiceResult<Post>.Failure("Le message à modifier est introuvable.");
+            }
+
+            return ServiceResult<Post>.Success(post);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la récupération du message {TopicId}.", id);
+            return ServiceResult<Post>.Failure("Une erreur est survenue lors du chargement du message.");
+        }
     }
 
-    public Task<Services.ServiceResult<Post>> UpdateAsync(int id, Post post)
+    public async Task<ServiceResult<Post>> UpdateAsync(int id, Post post)
     {
-        throw new NotImplementedException();
+        if(id != post.Id)
+        {
+            return ServiceResult<Post>.Failure("L'identifiant reçu est invalide.");
+        }
+
+        var existingPost = await _context.Posts.FindAsync(id);
+
+        if (existingPost is null)
+        {
+            return ServiceResult<Post>.Failure("Le message est introuvable.");
+        }
+
+        try
+        {
+            existingPost.Texte = post.Texte;
+            existingPost.Inactive = post.Inactive;
+
+            await _context.SaveChangesAsync();
+            return ServiceResult<Post>.Success(post);
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex,
+                "Erreur BD lors de la modification du message {TopicId}.", id);
+            return ServiceResult<Post>.Failure("Le message n'a pas pu être modifié.");
+        }
     }
 }

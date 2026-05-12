@@ -1,29 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using FR_WS2_BaseLab.Models;
+using FR_WS2_BaseLab.Services.Implementations;
+using FR_WS2_BaseLab.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using FR_WS2_BaseLab.Models;
-using Microsoft.AspNetCore.Authorization;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace FR_WS2_BaseLab.Controllers;
 
 public class CategoriesController : Controller
 {
-    private readonly FrWs2BaselabContext _context;
-
-    public CategoriesController(FrWs2BaselabContext context)
+    private readonly ICategoryService _categoryService;
+    public CategoriesController(ICategoryService categoryService)
     {
-        _context = context;
+        _categoryService = categoryService;
     }
 
     // GET: Categories
     [Authorize(Roles = "ADMINISTRATOR")]
     public async Task<IActionResult> Index()
     {
-        return View(await _context.Categories.ToListAsync());
+        var result = await _categoryService.GetAllAsync();
+
+        if (!result.Succeeded)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return View(new List<Category>());
+        }
+
+        return View(result.Value);
     }
 
     // GET: Categories/Details/5
@@ -35,14 +45,11 @@ public class CategoriesController : Controller
             return NotFound();
         }
 
-        var category = await _context.Categories
-            .FirstOrDefaultAsync(m => m.Id == id);
-        if (category == null)
-        {
-            return NotFound();
-        }
+        var result = await _categoryService.GetByIdAsync(id.Value);
 
-        return View(category);
+        if (!result.Succeeded || result.Value is null) return NotFound();
+
+        return View(result.Value);
     }
 
     // GET: Categories/Create
@@ -58,13 +65,17 @@ public class CategoriesController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "ADMINISTRATOR")]
-    public async Task<IActionResult> Create([Bind("Id,Inactive,Name,Description,Image")] Category category)
+    public async Task<IActionResult> Create([Bind("Name,Description")] Category category)
     {
         if (ModelState.IsValid)
         {
-            _context.Add(category);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index), "Home");
+            var result = await _categoryService.CreateAsync(category);
+            if (result.Succeeded)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            ModelState.AddModelError(string.Empty, result.ErrorMessage!);
         }
         return View(category);
     }
@@ -78,12 +89,10 @@ public class CategoriesController : Controller
             return NotFound();
         }
 
-        var category = await _context.Categories.FindAsync(id);
-        if (category == null)
-        {
-            return NotFound();
-        }
-        return View(category);
+        var result = await _categoryService.GetByIdAsync(id.Value);
+        if (!result.Succeeded) return NotFound();
+
+        return View(result.Value);
     }
 
     // POST: Categories/Edit/5
@@ -92,7 +101,7 @@ public class CategoriesController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "ADMINISTRATOR")]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,Inactive,Name,Description,Image")] Category category)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Image")] Category category)
     {
         if (id != category.Id)
         {
@@ -101,23 +110,13 @@ public class CategoriesController : Controller
 
         if (ModelState.IsValid)
         {
-            try
+            var result = await _categoryService.UpdateAsync(id, category);
+
+            if (result.Succeeded)
             {
-                _context.Update(category);
-                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CategoryExists(category.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            return RedirectToAction(nameof(Index));
+            ModelState.AddModelError(string.Empty, result.ErrorMessage!);
         }
         return View(category);
     }
@@ -131,14 +130,11 @@ public class CategoriesController : Controller
             return NotFound();
         }
 
-        var category = await _context.Categories
-            .FirstOrDefaultAsync(m => m.Id == id);
-        if (category == null)
-        {
-            return NotFound();
-        }
+        var result = await _categoryService.GetByIdAsync(id.Value);
 
-        return View(category);
+        if (!result.Succeeded) return NotFound();
+
+        return View(result.Value);
     }
 
     // POST: Categories/Delete/5
@@ -147,18 +143,18 @@ public class CategoriesController : Controller
     [Authorize(Roles = "ADMINISTRATOR")]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var category = await _context.Categories.FindAsync(id);
-        if (category != null)
-        {
-            _context.Categories.Remove(category);
-        }
+        var result = await _categoryService.DeleteAsync(id);
 
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+        if (result.Succeeded)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+        TempData["ErrorMessage"] = result.ErrorMessage;
+        return RedirectToAction(nameof(Delete), new { id = id });
     }
 
-    private bool CategoryExists(int id)
+    private async Task<bool> CategoryExists(int id)
     {
-        return _context.Categories.Any(e => e.Id == id);
+        return await _categoryService.ExistsAsync(id); 
     }
 }

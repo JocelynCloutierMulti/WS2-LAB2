@@ -70,9 +70,9 @@ public class TopicService : ITopicService
     }
 
 
-    public Task<bool> ExistsAsync(int id)
+    public async Task<bool> ExistsAsync(int id)
     {
-        throw new NotImplementedException();
+        return await _context.Topics.AnyAsync(e => e.Id == id);
     }
 
     public async Task<ServiceResult<List<Topic>>> GetByCategoryIdAsync(int categoryId)
@@ -87,8 +87,7 @@ public class TopicService : ITopicService
             .ToListAsync();
 
         return ServiceResult<List<Topic>>.Success(topics);
-    }
-    catch (Exception ex)
+    } catch (Exception ex)
     {
         _logger.LogError(ex,
             "Erreur lors du chargement des sujets de la catégorie {CategoryId}.",
@@ -97,6 +96,7 @@ public class TopicService : ITopicService
         return ServiceResult<List<Topic>>.Failure(
             "Les sujets n'ont pas pu être chargés.");
     }
+   
 }
 
 
@@ -128,9 +128,25 @@ public class TopicService : ITopicService
     }
 
 
-    public Task<ServiceResult<Topic>> GetForEditAsync(int id)
+    public async Task<ServiceResult<Topic>> GetForEditAsync(int id)
     {
-        throw new NotImplementedException();
+        try
+        {     
+            var topic = await _context.Topics
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (topic is null)
+            {
+                return ServiceResult<Topic>.Failure("Le sujet à modifier est introuvable.");
+            }
+
+            return ServiceResult<Topic>.Success(topic);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la récupération du sujet {TopicId}.", id);
+            return ServiceResult<Topic>.Failure("Une erreur est survenue lors du chargement du sujet.");
+        }
     }
 
     public async Task<ServiceResult<Topic>> UpdateAsync(int id, Topic topic)

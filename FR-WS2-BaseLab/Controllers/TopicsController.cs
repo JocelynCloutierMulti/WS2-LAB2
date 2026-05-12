@@ -54,6 +54,7 @@ public class TopicsController : Controller
     [Authorize]
     public IActionResult Create(int? id)
     {
+        if (id == null) return NotFound();
         ViewData["CategoryId"] = id;
         return View();
     }
@@ -90,19 +91,16 @@ public class TopicsController : Controller
     [Authorize]
     public async Task<IActionResult> Edit(int? id)
     {
-        if (id == null)
+        if (id == null) return NotFound();
+        var result = await _topicService.GetForEditAsync(id.Value);
+
+        if (!result.Succeeded)
         {
-            return NotFound();
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return RedirectToAction(nameof(Index)); 
         }
 
-        var topic = await _context.Topics.FindAsync(id);
-        if (topic == null)
-        {
-            return NotFound();
-        }
-        ViewData["CatId"] = new SelectList(_context.Categories, "Id", "Id", topic.CatId);
-        ViewData["UserId"] = new SelectList(_context.AspNetUsers, "Id", "Id", topic.UserId);
-        return View(topic);
+        return View(result.Value);
     }
 
     // POST: Topics/Edit/5
@@ -111,7 +109,7 @@ public class TopicsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,CatId,UserId,Inactive,Title,Texte,Date,Views")] Topic topic)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,CatId,Title,Texte, Inactive")] Topic topic)
     {
         if (id != topic.Id)
         {
@@ -120,26 +118,15 @@ public class TopicsController : Controller
 
         if (ModelState.IsValid)
         {
-            try
+            var result = await _topicService.UpdateAsync(id, topic);
+            if (result.Succeeded)
             {
-                _context.Update(topic);
-                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index), new { id = topic.CatId });
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TopicExists(topic.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            return RedirectToAction(nameof(Index));
+
+            ModelState.AddModelError(string.Empty, result.ErrorMessage!);
         }
-        ViewData["CatId"] = new SelectList(_context.Categories, "Id", "Id", topic.CatId);
-        ViewData["UserId"] = new SelectList(_context.AspNetUsers, "Id", "Id", topic.UserId);
+
         return View(topic);
     }
 
@@ -152,16 +139,11 @@ public class TopicsController : Controller
             return NotFound();
         }
 
-        var topic = await _context.Topics
-            .Include(t => t.Cat)
-            .Include(t => t.User)
-            .FirstOrDefaultAsync(m => m.Id == id);
-        if (topic == null)
-        {
-            return NotFound();
-        }
+        var result = await _topicService.GetDetailsAsync(id.Value);
 
-        return View(topic);
+        if (!result.Succeeded) return NotFound();
+
+        return View(result.Value);
     }
 
     // POST: Topics/Delete/5
@@ -170,18 +152,21 @@ public class TopicsController : Controller
     [Authorize]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var topic = await _context.Topics.FindAsync(id);
-        if (topic != null)
+        var topicResult = await _topicService.GetDetailsAsync(id);
+        int? categoryId = topicResult.Value?.CatId;
+
+        var result = await _topicService.DeleteAsync(id);
+
+        if (result.Succeeded && categoryId.HasValue)
         {
-            _context.Topics.Remove(topic);
+            return RedirectToAction(nameof(Index), new { id = categoryId.Value });
         }
 
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction("Index");
     }
 
-    private bool TopicExists(int id)
+    private async Task<bool> TopicExists(int id)
     {
-        return _context.Topics.Any(e => e.Id == id);
+        return await _topicService.ExistsAsync(id);
     }
 }
