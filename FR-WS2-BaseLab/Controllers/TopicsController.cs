@@ -6,6 +6,7 @@ using System.Security.Claims;
 
 namespace FR_WS2_BaseLab.Controllers;
 
+[Authorize] 
 public class TopicsController : Controller
 {
 	private readonly ITopicService _topicService;
@@ -55,7 +56,6 @@ public class TopicsController : Controller
 	}
 
 	// GET: /Topics/Create?id={categoryId}
-	[Authorize]
 	public async Task<IActionResult> Create(int? id)
 	{
 		if (id is null)
@@ -70,7 +70,6 @@ public class TopicsController : Controller
 	// POST: /Topics/Create
 	[HttpPost]
 	[ValidateAntiForgeryToken]
-	[Authorize]
 	public async Task<IActionResult> Create([Bind("CatId,Title,Texte")] Topic topic)
 	{
 		if (!ModelState.IsValid)
@@ -94,7 +93,6 @@ public class TopicsController : Controller
 	}
 
 	// GET: /Topics/Edit/5
-	[Authorize]
 	public async Task<IActionResult> Edit(int? id)
 	{
 		if (id is null)
@@ -114,7 +112,6 @@ public class TopicsController : Controller
 	// POST: /Topics/Edit/5
 	[HttpPost]
 	[ValidateAntiForgeryToken]
-	[Authorize]
 	public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Texte,Inactive")] Topic topic)
 	{
 		if (id != topic.Id)
@@ -139,7 +136,6 @@ public class TopicsController : Controller
 	}
 
 	// GET: /Topics/Delete/5
-	[Authorize]
 	public async Task<IActionResult> Delete(int? id)
 	{
 		if (id is null)
@@ -159,7 +155,6 @@ public class TopicsController : Controller
 	// POST: /Topics/Delete/5
 	[HttpPost, ActionName("Delete")]
 	[ValidateAntiForgeryToken]
-	[Authorize]
 	public async Task<IActionResult> DeleteConfirmed(int id)
 	{
 		var topic = await _topicService.GetForEditAsync(id);
