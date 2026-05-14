@@ -68,7 +68,7 @@ namespace FR_WS2_BaseLab.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Create([Bind("TopId,Texte")] Post post)
+        public async Task<IActionResult> Create(int TopId,[Bind("Texte")] Post post)
         {
             if (ModelState.IsValid)
             {
@@ -107,7 +107,7 @@ namespace FR_WS2_BaseLab.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,TopId,Texte")] Post post)
+        public async Task<IActionResult> Edit(int id, [Bind("Texte")] Post post)
         {
             if (id != post.Id) return NotFound();
 
