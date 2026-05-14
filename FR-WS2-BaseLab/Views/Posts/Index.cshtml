@@ -2,20 +2,24 @@
 
 @{
     ViewData["Title"] = "Index";
+    if(!User.IsInRole("ADMINISTRATOR")) return;
 }
 
-<h1>Index</h1>
+<h1>Messages</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
+<p class="creer-p">
+    <a asp-action="Create" asp-route-id="@(ViewData["TopicId"])" class="creer-a">Créer un message</a>
 </p>
+<div class="backList">
+    <a asp-action="Index" asp-route-id="@ViewData["CategoryId"]" class="backList-a" asp-controller="Topics">Back to List</a>
+</div>
 <table class="table">
     <thead>
         <tr>
             <th>
                 @Html.DisplayNameFor(model => model.Inactive)
             </th>
-            <th>
+            <th class="th-long">
                 @Html.DisplayNameFor(model => model.Texte)
             </th>
             <th>
@@ -36,22 +40,31 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Inactive)
             </td>
-            <td>
+            <td class="td-long">
                 @Html.DisplayFor(modelItem => item.Texte)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Date)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Top.Id)
+                @Html.DisplayFor(modelItem => item.TopId)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.User.Id)
+                @Html.DisplayFor(modelItem => item.UserId)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                <div class="boutonsTable">
+                    <a class="details-a" 
+                        asp-action="Details"
+                        asp-route-id="@item.Id"
+                        asp-route-topicId="@(ViewData["TopicId"])">Details</a>
+                    <a class="edit-a"  asp-action="Edit" 
+                        asp-route-id="@item.Id"
+                        asp-route-topicId="@(ViewData["TopicId"])">Edit</a>
+                    <a class="delete-a"  asp-action="Delete" 
+                        asp-route-id="@item.Id" 
+                        asp-route-topicId="@(ViewData["TopicId"])">Delete</a>
+                </div>
             </td>
         </tr>
 }

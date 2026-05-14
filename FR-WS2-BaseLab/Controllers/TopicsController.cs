@@ -1,40 +1,57 @@
 ﻿using FR_WS2_BaseLab.Models;
+using FR_WS2_BaseLab.Data;
 using FR_WS2_BaseLab.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace FR_WS2_BaseLab.Controllers;
 
-public class TopicsController : Controller
+public class TopicsController(
+    ITopicService topicService, 
+    FrWs2BaselabContext context, 
+    ApplicationDbContext appUser) : Controller
 {
-
-    private readonly ITopicService _topicService;
-    public TopicsController(ITopicService topicService)
-    {
-        _topicService = topicService;
-    }
+    private readonly ITopicService _topicService = topicService;
+    private readonly FrWs2BaselabContext _context = context;
+    private readonly ApplicationDbContext _appUser = appUser;
 
     // GET: Topics
+    [HttpGet]
+    [Authorize(Roles = "ADMINISTRATOR")]
+    public IActionResult Index()
+    {
+        return RedirectToAction("Index", "Categories");
+    }
+
+    // GET: Topics par catégorie
+    [Authorize(Roles = "ADMINISTRATOR")]
+    [HttpGet("Topics/Index/{id}")]
     public async Task<IActionResult> Index(int? id)
     {
         if (id is null) return NotFound();
         ViewData["CategoryId"] = id;
-
         var result = await _topicService.GetByCategoryIdAsync(id.Value);
-
         if (!result.Succeeded)
         {
             TempData["ErrorMessage"] = result.ErrorMessage;
             return View(new List<Topic>());
         }
+        return View(result.Value);
+    }
 
+    //Afficher sujets pour tous les utilisateurs
+    public async Task<IActionResult> AfficherSujets(int? id)
+    {
+        if (id is null) return NotFound();
+        ViewData["CategoryId"] = id;
+        var result = await _topicService.GetByCategoryIdAsync(id.Value);
+        if (!result.Succeeded)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return View(new List<Topic>());
+        }
         return View(result.Value);
     }
 
@@ -42,20 +59,23 @@ public class TopicsController : Controller
     public async Task<IActionResult> Details(int? id)
     {
         if (id is null) return NotFound();
-
         var result = await _topicService.GetDetailsAsync(id.Value);
-
         if (!result.Succeeded || result.Value is null) return NotFound();
-        
         return View(result.Value);
     }
 
     // GET: Topics/Create
-    [Authorize]
-    public IActionResult Create(int? id)
+   [Authorize]
+    public async Task<IActionResult> Create(int? id)
     {
-        ViewData["CategoryId"] = id;
-        return View();
+        if (id is null) return NotFound();
+        if (User.IsInRole("ADMINISTRATOR"))
+        {
+            ViewBag.Categories = new SelectList(
+                _context.Categories.Where(c => !c.Inactive),"Id","Name",id.Value);
+            ViewBag.Users = new SelectList(_context.AspNetUsers,"Id","UserName");
+        }
+        return View(new Topic { CatId = id.Value });
     }
 
     // POST: Topics/Create
@@ -64,45 +84,61 @@ public class TopicsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> Create([Bind("CatId,UserId,Inactive,Title,Texte,Date,Views")] Topic topic)
+    public async Task<IActionResult> Create(
+    [Bind("CatId,UserId,Title,Texte")] Topic topic)
     {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is null) return Challenge();
+        if (!User.IsInRole("ADMINISTRATOR")) topic.UserId = userId;
+        else if (string.IsNullOrWhiteSpace(topic.UserId)){
+            topic.UserId = userId;
+            ModelState.Remove("UserId");
+        }
         if (!ModelState.IsValid)
         {
-            ViewData["CategoryId"] = topic.CatId;
+            if (User.IsInRole("ADMINISTRATOR"))
+            {
+                ViewBag.Categories = new SelectList(
+                    _context.Categories.Where(c => !c.Inactive),"Id","Name",topic.CatId);
+                ViewBag.Users = new SelectList(_appUser.Users.ToList(), "Id","UserName",topic.UserId);
+            }
             return View(topic);
         }
-
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var result = await _topicService.CreateAsync(topic, userId);
-
+        var result = await _topicService.CreateAsync(topic, topic.UserId);
         if (!result.Succeeded)
         {
-            ModelState.AddModelError(string.Empty, result.ErrorMessage!);
-            ViewData["CategoryId"] = topic.CatId;
+            ModelState.AddModelError("", result.ErrorMessage!);
+            if (User.IsInRole("ADMINISTRATOR"))
+            {
+                ViewBag.Categories = new SelectList(_context.Categories.Where(c => !c.Inactive), "Id", "Name", topic.CatId);
+                ViewBag.Users = new SelectList(_appUser.Users.ToList(), "Id", "UserName", topic.UserId);
+            }
             return View(topic);
         }
-
-        return RedirectToAction(nameof(Index), new { id = topic.CatId });
-
+        return RedirectToAction(nameof(Details), new { id = topic.Id });
     }
 
     // GET: Topics/Edit/5
     [Authorize]
     public async Task<IActionResult> Edit(int? id)
     {
-        if (id == null)
+        if (id is null) return NotFound();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is null) return Challenge();
+        var result = await _topicService.GetForEditAsync(id.Value);
+        if (!result.Succeeded || result.Value is null)
         {
-            return NotFound();
-        }
-
-        var topic = await _context.Topics.FindAsync(id);
-        if (topic == null)
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return RedirectToAction(nameof(Details), new { id });
+        } 
+        var topic = result.Value;
+        if (topic.UserId != userId && !User.IsInRole("ADMINISTRATOR")) return Forbid();
+        if (User.IsInRole("ADMINISTRATOR"))
         {
-            return NotFound();
+            ViewData["Name"] = new SelectList(_context.Categories, "Id", "Name", topic.CatId);
+            ViewData["UserName"] = new SelectList(_context.AspNetUsers, "Id", "UserName", topic.UserId);
         }
-        ViewData["CatId"] = new SelectList(_context.Categories, "Id", "Id", topic.CatId);
-        ViewData["UserId"] = new SelectList(_context.AspNetUsers, "Id", "Id", topic.UserId);
-        return View(topic);
+        return View(result.Value);
     }
 
     // POST: Topics/Edit/5
@@ -113,55 +149,47 @@ public class TopicsController : Controller
     [Authorize]
     public async Task<IActionResult> Edit(int id, [Bind("Id,CatId,UserId,Inactive,Title,Texte,Date,Views")] Topic topic)
     {
-        if (id != topic.Id)
-        {
-            return NotFound();
-        }
-
-        if (ModelState.IsValid)
-        {
-            try
+        if (id != topic.Id) return NotFound();
+        var autorise = User.IsInRole("ADMINISTRATOR");
+        if (!ModelState.IsValid)
+        { 
+            if (User.IsInRole("ADMINISTRATOR")) 
             {
-                _context.Update(topic);
-                await _context.SaveChangesAsync();
+                 ViewData["Name"] = new SelectList(_context.Categories, "Id", "Name", topic.CatId);
+                 ViewData["UserName"] = new SelectList(_context.AspNetUsers, "Id", "UserName", topic.UserId);
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TopicExists(topic.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            return RedirectToAction(nameof(Index));
+            return View(topic); 
         }
-        ViewData["CatId"] = new SelectList(_context.Categories, "Id", "Id", topic.CatId);
-        ViewData["UserId"] = new SelectList(_context.AspNetUsers, "Id", "Id", topic.UserId);
-        return View(topic);
+        var result = await _topicService.UpdateAsync(id, topic, autorise);
+        if (!result.Succeeded || result.Value is null)
+        {
+            ModelState.AddModelError(string.Empty, result.ErrorMessage!);
+            if (autorise)
+            {
+               ViewData["Name"] = new SelectList(_context.Categories, "Id", "Name", result.Value?.CatId);
+                ViewData["UserName"] = new SelectList(_context.AspNetUsers, "Id", "UserName", topic.UserId); 
+            }
+            return View(topic);
+        } 
+        return RedirectToAction(nameof(Details), new { id = topic.Id });
     }
 
     // GET: Topics/Delete/5
     [Authorize]
     public async Task<IActionResult> Delete(int? id)
     {
-        if (id == null)
+        if (id == null) return NotFound();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is null) return Challenge();
+        var result = await _topicService.GetDetailsAsync(id.Value);
+        if (!result.Succeeded || result.Value is null)
         {
-            return NotFound();
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return RedirectToAction(nameof(Details), new { id });
         }
-
-        var topic = await _context.Topics
-            .Include(t => t.Cat)
-            .Include(t => t.User)
-            .FirstOrDefaultAsync(m => m.Id == id);
-        if (topic == null)
-        {
-            return NotFound();
-        }
-
-        return View(topic);
+        var topic = result.Value;
+        if (topic.UserId != userId && !User.IsInRole("ADMINISTRATOR")) return Forbid();
+        return View(result.Value);
     }
 
     // POST: Topics/Delete/5
@@ -170,18 +198,20 @@ public class TopicsController : Controller
     [Authorize]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var topic = await _context.Topics.FindAsync(id);
-        if (topic != null)
+        var result = await _topicService.DeleteAsync(id);
+            if (!result.Succeeded || result.Value is null)
+            {
+                ModelState.AddModelError(string.Empty, result.ErrorMessage!);
+                return RedirectToAction(nameof(Details), new { id });
+            }
+        var categId = result.Value.CatId;
+        if (User.IsInRole("ADMINISTRATOR"))
         {
-            _context.Topics.Remove(topic);
+           return RedirectToAction(nameof(Index), new { id = categId }); 
         }
-
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
-    }
-
-    private bool TopicExists(int id)
-    {
-        return _context.Topics.Any(e => e.Id == id);
+        else
+        {
+            return RedirectToAction(nameof(AfficherSujets), new { id = categId });
+        }
     }
 }

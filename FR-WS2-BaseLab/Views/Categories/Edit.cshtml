@@ -2,15 +2,14 @@
 
 @{
     ViewData["Title"] = "Edit";
+    if(!User.IsInRole("ADMINISTRATOR")) return;
 }
 
-<h1>Edit</h1>
-
-<h4>Category</h4>
+<h1>Modifier une catégorie</h1>
 <hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
+    <div class="col-lg-4 colonne">
+        <form asp-action="Edit" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <div class="form-group form-check">
@@ -28,13 +27,32 @@
                 <input asp-for="Description" class="form-control" />
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
+            @if (!string.IsNullOrEmpty(Model.Image))
+            {
+                <div class="form-group">
+                    <label>Image actuelle</label><br />
+                    <img id="imagePreview"
+                        src="~/images/categories/@Model.Image"
+                        class="img-thumbnail mb-2"
+                        style="max-width:200px" />
+                </div>
+            }
+            else
+            {
+                <img id="imagePreview"
+                    class="img-thumbnail mb-2"
+                    style="max-width:200px; display:none;" />
+            }
             <div class="form-group">
-                <label asp-for="Image" class="control-label"></label>
-                <input asp-for="Image" class="form-control" />
-                <span asp-validation-for="Image" class="text-danger"></span>
-            </div>
+                <label>Changer l’image</label>
+                <input type="file"
+                    id="imageFileInput"
+                    name="imageFile"
+                    class="form-control"
+                    accept="image/*" />
+                </div>
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <input type="submit" value="Sauvegarder" class="btn btn-success" />
             </div>
         </form>
     </div>

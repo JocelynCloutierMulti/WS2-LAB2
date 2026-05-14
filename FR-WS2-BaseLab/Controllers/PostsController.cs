@@ -1,57 +1,86 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using FR_WS2_BaseLab.Models;
+using FR_WS2_BaseLab.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using FR_WS2_BaseLab.Models;
 using System.Security.Claims;
 
 namespace FR_WS2_BaseLab.Controllers
 {
-    public class PostsController : Controller
+    public class PostsController(
+        IPostService postService, 
+        ITopicService topicService, 
+        FrWs2BaselabContext context) : Controller
     {
-        private readonly FrWs2BaselabContext _context;
+        private readonly FrWs2BaselabContext _context = context;
+        private readonly IPostService _postService = postService;
+        private readonly ITopicService _topicService = topicService;
 
-        public PostsController(FrWs2BaselabContext context)
+        // GET: Topics
+        [Authorize(Roles = "ADMINISTRATOR")]
+        [HttpGet]
+        public IActionResult Index()
         {
-            _context = context;
+            return RedirectToAction("Index", "Topics");
         }
 
+        // GET: Posts par sujets
+        [Authorize(Roles = "ADMINISTRATOR")]
+        [HttpGet("Posts/Index/{id}")]
         // GET: Posts
         public async Task<IActionResult> Index(int? id)
         {
-            @ViewData["TopicId"] = id;           
-            var frWs2BaselabContext = _context.Posts.Where(p=>p.Id == id);
-            return View(await frWs2BaselabContext.ToListAsync());
+            if (id is null) return NotFound();
+            await _topicService.IncrementViewsAsync(id.Value);
+            ViewData["TopicId"] = id;
+            var result = await _postService.GetByTopicIdAsync(id.Value);
+            if (!result.Succeeded)
+            {
+                TempData["ErrorMessage"] = result.ErrorMessage;
+                return View(new List<Post>());
+            }
+            var topic = await _context.Topics.AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == id.Value);
+            ViewData["CategoryId"] = topic?.CatId;
+            return View(result.Value);
+        }
+
+        public async Task<IActionResult> AfficherMessages(int? id)
+        {
+            if (id is null) return NotFound();
+            ViewData["TopicId"] = id;
+            var result = await _postService.GetByTopicIdAsync(id.Value);
+            if (!result.Succeeded)
+            {
+                TempData["ErrorMessage"] = result.ErrorMessage;
+                return View(new List<Post>());
+            }
+            return View(result.Value);
         }
 
         // GET: Posts/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id, int? topicId)
         {
-            if (id == null)
+            if (id is null) return NotFound();
+            ViewData["TopicId"] = topicId;
+            var result = await _postService.GetDetailsAsync(id.Value);
+            if (!result.Succeeded || result.Value is null)
             {
+                TempData["ErrorMessage"] = result.ErrorMessage;
+                if (topicId.HasValue) return RedirectToAction(nameof(Index), new { id = topicId.Value });
                 return NotFound();
             }
-
-            var post = await _context.Posts
-                .Include(p => p.Top)
-                .Include(p => p.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (post == null)
-            {
-                return NotFound();
-            }
-
-            return View(post);
+            return View(result.Value);
         }
 
         // GET: Posts/Create
+        [Authorize]
         public IActionResult Create(int? id)
         {
+            if (id is null) return NotFound();
             ViewData["TopicId"] = id;
-            return View();
+            return View(new Post { TopId = id.Value });
         }
 
         // POST: Posts/Create
@@ -59,36 +88,44 @@ namespace FR_WS2_BaseLab.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Create([Bind("TopId,UserId,Inactive,Texte,Date")] Post post)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid) return View(post);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId is null) return Challenge();
+            var result = await _postService.CreateAsync(post, userId);
+            if (!result.Succeeded)
             {
-                post.Date = DateTime.Now;
-                post.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                _context.Add(post);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index), new { id = post.TopId});
+                ModelState.AddModelError(string.Empty, result.ErrorMessage!);
+                return View(post);
             }
-            ViewData["TopId"] = post.Id;
-            return View(post);
+            return RedirectToAction(nameof(Details), 
+                new { id = result.Value!.Id, topicId = result.Value.TopId });
         }
 
         // GET: Posts/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        [Authorize]
+        public async Task<IActionResult> Edit(int? id, int? topicId)
         {
-            if (id == null)
+            if (id is null) return NotFound();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId is null) return Challenge();
+            ViewData["TopicId"] = topicId;
+            var result = await _postService.GetForEditAsync(id.Value);
+            if (!result.Succeeded || result.Value is null)
             {
-                return NotFound();
+                TempData["ErrorMessage"] = result.ErrorMessage;
+                return RedirectToAction(nameof(Details), new { id });
             }
-
-            var post = await _context.Posts.FindAsync(id);
-            if (post == null)
+            var post = result.Value;
+            if (post.UserId != userId && !User.IsInRole("ADMINISTRATOR")) return Forbid();
+            if (User.IsInRole("ADMINISTRATOR"))
             {
-                return NotFound();
+                ViewData["TopId"] = new SelectList(_context.Topics, "Id", "Title", result.Value?.TopId);
+                ViewData["UserName"] = new SelectList(_context.AspNetUsers, "Id", "UserName", post.UserId);
             }
-            ViewData["TopId"] = new SelectList(_context.Topics, "Id", "Id", post.TopId);
-            ViewData["UserId"] = new SelectList(_context.AspNetUsers, "Id", "Id", post.UserId);
-            return View(post);
+            return View(result.Value);  
         }
 
         // POST: Posts/Edit/5
@@ -96,76 +133,57 @@ namespace FR_WS2_BaseLab.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Edit(int id, [Bind("Id,TopId,UserId,Inactive,Texte,Date")] Post post)
         {
-            if (id != post.Id)
+            ViewData["TopicId"] = post.TopId;
+            if (!ModelState.IsValid) return View(post);
+            var autorise = false;
+            if (User.IsInRole("ADMINISTRATOR")) autorise = true;
+            var result = await _postService.UpdateAsync(id, post, autorise);
+            if (!result.Succeeded || result.Value is null)
             {
-                return NotFound();
+                ModelState.AddModelError(string.Empty, result.ErrorMessage!);
+                return View(post);
             }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(post);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!PostExists(post.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["TopId"] = new SelectList(_context.Topics, "Id", "Id", post.TopId);
-            ViewData["UserId"] = new SelectList(_context.AspNetUsers, "Id", "Id", post.UserId);
-            return View(post);
+            return RedirectToAction(nameof(Details), new { id, topicId = post.TopId });
         }
 
         // GET: Posts/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        [Authorize]
+        public async Task<IActionResult> Delete(int? id, int? topicId)
         {
-            if (id == null)
+            if (id is null) return NotFound();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId is null) return Challenge();
+            var result = await _postService.GetDetailsAsync(id.Value);
+            if (!result.Succeeded || result.Value is null)
             {
-                return NotFound();
+                TempData["ErrorMessage"] = result.ErrorMessage;
+                return RedirectToAction(nameof(Details), new { id });
             }
-
-            var post = await _context.Posts
-                .Include(p => p.Top)
-                .Include(p => p.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (post == null)
-            {
-                return NotFound();
-            }
-
-            return View(post);
+            var post = result.Value;
+            if (post.UserId != userId && !User.IsInRole("ADMINISTRATOR")) return Forbid();
+            ViewData["TopicId"] = topicId;
+            return View(result.Value); 
         }
 
         // POST: Posts/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var post = await _context.Posts.FindAsync(id);
-            if (post != null)
+            var result = await _postService.DeleteAsync(id);
+            if (!result.Succeeded || result.Value is null)
             {
-                _context.Posts.Remove(post);
+                ModelState.AddModelError(string.Empty, result.ErrorMessage!);
+                return RedirectToAction(nameof(Details), new { id });
             }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool PostExists(int id)
-        {
-            return _context.Posts.Any(e => e.Id == id);
+            var sujetId = result.Value.TopId;
+            if (User.IsInRole("ADMINISTRATOR"))
+                return RedirectToAction(nameof(Index), new { id = sujetId });
+            return RedirectToAction(nameof(AfficherMessages), new { id = sujetId});
         }
     }
 }

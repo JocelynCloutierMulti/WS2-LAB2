@@ -4,25 +4,39 @@
     ViewData["Title"] = "Edit";
 }
 
-<h1>Edit</h1>
-
-<h4>Topic</h4>
+<h1>Modifier un sujet</h1>
 <hr />
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-lg-4 colonne">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="CatId" class="control-label"></label>
-                <select asp-for="CatId" class="form-control" asp-items="ViewBag.CatId"></select>
-                <span asp-validation-for="CatId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <select asp-for="UserId" class="form-control" asp-items="ViewBag.UserId"></select>
-                <span asp-validation-for="UserId" class="text-danger"></span>
-            </div>
+              @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("ADMINISTRATOR"))
+            { 
+                <div class="form-group">
+                    <label asp-for="CatId" class="control-label">Catégorie</label>
+                    <select asp-for="CatId" class="form-control" asp-items="ViewBag.Name"></select>
+                    <span asp-validation-for="CatId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="UserId" class="control-label">Utilisateur</label>
+                    <select asp-for="UserId" class="form-control" asp-items="ViewBag.UserName"></select>
+                    <span asp-validation-for="UserId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Date" class="control-label"></label>
+                    <input asp-for="Date" class="form-control" />
+                    <span asp-validation-for="Date" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Views" class="control-label"></label>
+                    <input asp-for="Views" class="form-control" />
+                    <span asp-validation-for="Views" class="text-danger"></span>
+                </div>
+            }
+            else{
+                <input type="hidden" asp-for="CatId" />
+            }
             <div class="form-group form-check">
                 <label class="form-check-label">
                     <input class="form-check-input" asp-for="Inactive" /> @Html.DisplayNameFor(model => model.Inactive)
@@ -39,24 +53,19 @@
                 <span asp-validation-for="Texte" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Date" class="control-label"></label>
-                <input asp-for="Date" class="form-control" />
-                <span asp-validation-for="Date" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Views" class="control-label"></label>
-                <input asp-for="Views" class="form-control" />
-                <span asp-validation-for="Views" class="text-danger"></span>
-            </div>
-            <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
-
 <div>
-    <a asp-action="Index">Back to List</a>
+    @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("ADMINISTRATOR")) 
+        {
+        <a asp-action="Index" asp-route-id="@Model?.CatId">Back to List</a>
+        }
+        else{
+            <a asp-action="AfficherSujets" asp-route-id="@Model?.CatId">Back to List</a>
+        } 
 </div>
 
 @section Scripts {
