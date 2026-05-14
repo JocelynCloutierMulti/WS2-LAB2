@@ -28,7 +28,9 @@ public class Program
             .AddEntityFrameworkStores<ApplicationDbContext>();
         builder.Services.AddControllersWithViews();
 
+        builder.Services.AddScoped<ICategoryService, CategoryService>();
         builder.Services.AddScoped<ITopicService, TopicService>();
+        builder.Services.AddScoped<IPostService, PostService>();
 
         var app = builder.Build();
 

@@ -2,13 +2,7 @@
 using FR_WS2_BaseLab.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace FR_WS2_BaseLab.Controllers;
 
@@ -90,19 +84,12 @@ public class TopicsController : Controller
     [Authorize]
     public async Task<IActionResult> Edit(int? id)
     {
-        if (id == null)
-        {
-            return NotFound();
-        }
+        if (id is null) return NotFound();
 
-        var topic = await _context.Topics.FindAsync(id);
-        if (topic == null)
-        {
-            return NotFound();
-        }
-        ViewData["CatId"] = new SelectList(_context.Categories, "Id", "Id", topic.CatId);
-        ViewData["UserId"] = new SelectList(_context.AspNetUsers, "Id", "Id", topic.UserId);
-        return View(topic);
+        var result = await _topicService.GetForEditAsync(id.Value);
+        if (!result.Succeeded || result.Value is null) return NotFound();
+
+        return View(result.Value);
     }
 
     // POST: Topics/Edit/5
@@ -111,7 +98,7 @@ public class TopicsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,CatId,UserId,Inactive,Title,Texte,Date,Views")] Topic topic)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Inactive,Title,Texte")] Topic topic)
     {
         if (id != topic.Id)
         {
@@ -120,26 +107,17 @@ public class TopicsController : Controller
 
         if (ModelState.IsValid)
         {
-            try
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _topicService.UpdateAsync(id, topic, userId, User.IsInRole("ADMINISTRATOR"));
+
+            if (result.Succeeded)
             {
-                _context.Update(topic);
-                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index), new { id = result.Value!.CatId });
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TopicExists(topic.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            return RedirectToAction(nameof(Index));
+
+            ModelState.AddModelError(string.Empty, result.ErrorMessage!);
         }
-        ViewData["CatId"] = new SelectList(_context.Categories, "Id", "Id", topic.CatId);
-        ViewData["UserId"] = new SelectList(_context.AspNetUsers, "Id", "Id", topic.UserId);
+
         return View(topic);
     }
 
@@ -147,21 +125,12 @@ public class TopicsController : Controller
     [Authorize]
     public async Task<IActionResult> Delete(int? id)
     {
-        if (id == null)
-        {
-            return NotFound();
-        }
+        if (id is null) return NotFound();
 
-        var topic = await _context.Topics
-            .Include(t => t.Cat)
-            .Include(t => t.User)
-            .FirstOrDefaultAsync(m => m.Id == id);
-        if (topic == null)
-        {
-            return NotFound();
-        }
+        var result = await _topicService.GetDetailsAsync(id.Value);
+        if (!result.Succeeded || result.Value is null) return NotFound();
 
-        return View(topic);
+        return View(result.Value);
     }
 
     // POST: Topics/Delete/5
@@ -170,18 +139,15 @@ public class TopicsController : Controller
     [Authorize]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var topic = await _context.Topics.FindAsync(id);
-        if (topic != null)
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await _topicService.DeleteAsync(id, userId, User.IsInRole("ADMINISTRATOR"));
+
+        if (!result.Succeeded)
         {
-            _context.Topics.Remove(topic);
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return RedirectToAction(nameof(Index), "Home");
         }
 
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
-    }
-
-    private bool TopicExists(int id)
-    {
-        return _context.Topics.Any(e => e.Id == id);
+        return RedirectToAction(nameof(Index), new { id = result.Value!.CatId });
     }
 }

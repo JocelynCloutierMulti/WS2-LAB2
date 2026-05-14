@@ -60,10 +60,10 @@
                     @Html.DisplayFor(modelItem => item.Views)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Cat.Name)
+                    @(item.Cat?.Name ?? "")
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.User.UserName)
+                    @(item.User?.UserName ?? "")
                 </td>
                 <td>
                     @foreach (var p in item.Posts)
@@ -72,7 +72,7 @@
                             break;
                         <div class="card text-center text-black mt-1">
                             <div>@p.Date.ToShortDateString()</div>
-                            <div>@p.User.UserName: @p.Texte</div>
+                            <div>@(p.User?.UserName ?? ""): @p.Texte</div>
                         </div>
 
                         cnt++;

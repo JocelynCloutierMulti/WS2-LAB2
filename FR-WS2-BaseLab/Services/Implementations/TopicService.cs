@@ -44,13 +44,18 @@ public class TopicService : ITopicService
     }
 
 
-    public async Task<ServiceResult<Topic>> DeleteAsync(int id)
+    public async Task<ServiceResult<Topic>> DeleteAsync(int id, string? userId, bool isAdmin)
     {
         var topic = await _context.Topics.FindAsync(id);
 
         if (topic is null)
         {
             return ServiceResult<Topic>.Failure("Le sujet est introuvable.");
+        }
+
+        if (!CanManage(topic.UserId, userId, isAdmin))
+        {
+            return ServiceResult<Topic>.Failure("Vous n'avez pas les droits pour supprimer ce sujet.");
         }
 
         try
@@ -70,9 +75,9 @@ public class TopicService : ITopicService
     }
 
 
-    public Task<bool> ExistsAsync(int id)
+    public async Task<bool> ExistsAsync(int id)
     {
-        throw new NotImplementedException();
+        return await _context.Topics.AnyAsync(e => e.Id == id);
     }
 
     public async Task<ServiceResult<List<Topic>>> GetByCategoryIdAsync(int categoryId)
@@ -81,7 +86,10 @@ public class TopicService : ITopicService
     {
         var topics = await _context.Topics
             .AsNoTracking()
+            .Include(t => t.Cat)
             .Include(t => t.User)
+            .Include(t => t.Posts)
+                .ThenInclude(p => p.User)
             .Where(t => t.CatId == categoryId)
             .OrderByDescending(t => t.Date)
             .ToListAsync();
@@ -108,6 +116,8 @@ public class TopicService : ITopicService
                 .AsNoTracking()
                 .Include(t => t.Cat)
                 .Include(t => t.User)
+                .Include(t => t.Posts)
+                    .ThenInclude(p => p.User)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
             if (topic is null)
@@ -128,12 +138,29 @@ public class TopicService : ITopicService
     }
 
 
-    public Task<ServiceResult<Topic>> GetForEditAsync(int id)
+    public async Task<ServiceResult<Topic>> GetForEditAsync(int id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var topic = await _context.Topics
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (topic is null)
+            {
+                return ServiceResult<Topic>.Failure("Le sujet est introuvable.");
+            }
+
+            return ServiceResult<Topic>.Success(topic);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors du chargement du sujet {TopicId} pour modification.", id);
+            return ServiceResult<Topic>.Failure("Le sujet n'a pas pu être chargé.");
+        }
     }
 
-    public async Task<ServiceResult<Topic>> UpdateAsync(int id, Topic topic)
+    public async Task<ServiceResult<Topic>> UpdateAsync(int id, Topic topic, string? userId, bool isAdmin)
     {
         if (id != topic.Id)
         {
@@ -147,14 +174,19 @@ public class TopicService : ITopicService
             return ServiceResult<Topic>.Failure("Le sujet est introuvable.");
         }
 
+        if (!CanManage(existingTopic.UserId, userId, isAdmin))
+        {
+            return ServiceResult<Topic>.Failure("Vous n'avez pas les droits pour modifier ce sujet.");
+        }
+
         try
         {
             existingTopic.Title = topic.Title;
             existingTopic.Texte = topic.Texte;
-            existingTopic.Inactive = topic.Inactive;
+            existingTopic.Inactive = isAdmin ? topic.Inactive : existingTopic.Inactive;
 
             await _context.SaveChangesAsync();
-            return ServiceResult<Topic>.Success(topic);
+            return ServiceResult<Topic>.Success(existingTopic);
         }
         catch (DbUpdateException ex)
         {
@@ -164,5 +196,9 @@ public class TopicService : ITopicService
         }
     }
 
-}
+    private static bool CanManage(string? ownerId, string? userId, bool isAdmin)
+    {
+        return isAdmin || (!string.IsNullOrWhiteSpace(userId) && ownerId == userId);
+    }
 
+}

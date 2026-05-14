@@ -1,25 +1,33 @@
 using System.Diagnostics;
 using FR_WS2_BaseLab.Models;
+using FR_WS2_BaseLab.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace FR_WS2_BaseLab.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly FrWs2BaselabContext _frWs2Context;
+        private readonly ICategoryService _categoryService;
 
-        public HomeController(ILogger<HomeController> logger, FrWs2BaselabContext frWs2Context)
+        public HomeController(ILogger<HomeController> logger, ICategoryService categoryService)
         {
             _logger = logger;
-            _frWs2Context = frWs2Context;
+            _categoryService = categoryService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var categories = _frWs2Context.Categories.Include(t=>t.Topics);
-            return View(categories);
+            var result = await _categoryService.GetAllAsync(includeTopics: true);
+
+            if (!result.Succeeded)
+            {
+                _logger.LogWarning("Affichage de l'accueil sans catégories: {ErrorMessage}", result.ErrorMessage);
+                TempData["ErrorMessage"] = result.ErrorMessage;
+                return View(new List<Category>());
+            }
+
+            return View(result.Value);
         }
     }
 }
