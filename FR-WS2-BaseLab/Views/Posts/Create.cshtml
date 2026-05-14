@@ -12,7 +12,7 @@
     <div class="col-md-4">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="TopId" value="@ViewData["TopicId"]"/>
+            <input type="hidden" name="TopId" value="@ViewData["TopicId"]"/>
             <div class="form-group">
                 <label asp-for="Texte" class="control-label"></label>
                 <textarea asp-for="Texte" class="form-control"></textarea>

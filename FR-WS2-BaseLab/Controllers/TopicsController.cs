@@ -64,7 +64,7 @@ public class TopicsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> Create([Bind("CatId,UserId,Inactive,Title,Texte,Date,Views")] Topic topic)
+    public async Task<IActionResult> Create([Bind("CatId,Inactive,Title,Texte")] Topic topic)
     {
         if (!ModelState.IsValid)
         {
@@ -82,6 +82,7 @@ public class TopicsController : Controller
             return View(topic);
         }
 
+       TempData["SuccessMessage"] = "Le sujet a été créé avec succès.";
         return RedirectToAction(nameof(Index), new { id = topic.CatId });
 
     }
@@ -91,97 +92,77 @@ public class TopicsController : Controller
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null)
-        {
-            return NotFound();
-        }
+        return NotFound();
+        
 
-        var topic = await _context.Topics.FindAsync(id);
-        if (topic == null)
-        {
-            return NotFound();
-        }
-        ViewData["CatId"] = new SelectList(_context.Categories, "Id", "Id", topic.CatId);
-        ViewData["UserId"] = new SelectList(_context.AspNetUsers, "Id", "Id", topic.UserId);
-        return View(topic);
+     var result = await _topicService.GetForEditAsync(id.Value);
+
+    if (!result.Succeeded || result.Value is null)
+    {
+        TempData["ErrorMessage"] = result.ErrorMessage;
+        return RedirectToAction(nameof(Index));
     }
+
+    return View(result.Value);  
+}
 
     // POST: Topics/Edit/5
     // To protect from overposting attacks, enable the specific properties you want to bind to.
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    [Authorize]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,CatId,UserId,Inactive,Title,Texte,Date,Views")] Topic topic)
-    {
-        if (id != topic.Id)
-        {
-            return NotFound();
-        }
+[HttpPost]
+[ValidateAntiForgeryToken]
+[Authorize]
+public async Task<IActionResult> Edit(int id, [Bind("Id,CatId,Inactive,Title,Texte")] Topic topic)
+{
+    if (id != topic.Id) return NotFound();
+    if (!ModelState.IsValid) return View(topic);
 
-        if (ModelState.IsValid)
-        {
-            try
-            {
-                _context.Update(topic);
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TopicExists(topic.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            return RedirectToAction(nameof(Index));
-        }
-        ViewData["CatId"] = new SelectList(_context.Categories, "Id", "Id", topic.CatId);
-        ViewData["UserId"] = new SelectList(_context.AspNetUsers, "Id", "Id", topic.UserId);
+    var result = await _topicService.UpdateAsync(id, topic);
+
+    if (!result.Succeeded)
+    {
+        ModelState.AddModelError(string.Empty, result.ErrorMessage!);
         return View(topic);
     }
+
+    TempData["SuccessMessage"] = "Le sujet a été modifié avec succès.";
+    return RedirectToAction(nameof(Index), new { id = topic.CatId });
+}
 
     // GET: Topics/Delete/5
     [Authorize]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null)
+        return NotFound();
+      
+        var topic = await _topicService.GetDetailsAsync(id.Value);
+        if (!topic.Succeeded || topic.Value is null)
         {
-            return NotFound();
+              TempData["ErrorMessage"] = topic.ErrorMessage;
+            return RedirectToAction(nameof(Index), new { id = topic.Value?.CatId ?? 0 });
         }
 
-        var topic = await _context.Topics
-            .Include(t => t.Cat)
-            .Include(t => t.User)
-            .FirstOrDefaultAsync(m => m.Id == id);
-        if (topic == null)
-        {
-            return NotFound();
-        }
-
-        return View(topic);
+        return View(topic.Value);
     }
 
     // POST: Topics/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> DeleteConfirmed(int id)
+   public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var topic = await _context.Topics.FindAsync(id);
-        if (topic != null)
+        var topic = await _topicService.GetForEditAsync(id);
+        var catId = topic.Value?.CatId;
+        var result = await _topicService.DeleteAsync(id);
+
+        if (!result.Succeeded)
         {
-            _context.Topics.Remove(topic);
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return RedirectToAction(nameof(Delete), new { id });
         }
 
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
-    }
-
-    private bool TopicExists(int id)
-    {
-        return _context.Topics.Any(e => e.Id == id);
+        TempData["SuccessMessage"] = "Le sujet a été supprimé avec succès.";
+        return RedirectToAction(nameof(Index), new { id = catId });   
     }
 }

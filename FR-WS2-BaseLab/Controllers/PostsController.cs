@@ -1,171 +1,153 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using FR_WS2_BaseLab.Models;
+using FR_WS2_BaseLab.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using FR_WS2_BaseLab.Models;
 using System.Security.Claims;
 
-namespace FR_WS2_BaseLab.Controllers
+namespace FR_WS2_BaseLab.Controllers;
+
+public class PostsController : Controller
 {
-    public class PostsController : Controller
+    private readonly IPostService _postService;
+
+    public PostsController(IPostService postService)
     {
-        private readonly FrWs2BaselabContext _context;
+        _postService = postService;
+    }
 
-        public PostsController(FrWs2BaselabContext context)
+    // GET: Posts
+    public async Task<IActionResult> Index(int? id)
+    {
+        if (id is null) return NotFound();
+        ViewData["TopicId"] = id;
+
+        var result = await _postService.GetByTopicIdAsync(id.Value);
+
+        if (!result.Succeeded)
         {
-            _context = context;
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return View(new List<Post>());
         }
 
-        // GET: Posts
-        public async Task<IActionResult> Index(int? id)
+        return View(result.Value);
+    }
+
+    // GET: Posts/Details/5
+    public async Task<IActionResult> Details(int? id)
+    {
+        if (id is null) return NotFound();
+
+        var result = await _postService.GetDetailsAsync(id.Value);
+
+        if (!result.Succeeded || result.Value is null) return NotFound();
+
+        return View(result.Value);
+    }
+
+    // GET: Posts/Create
+    [Authorize]
+    public IActionResult Create(int? id)
+    {
+        ViewData["TopicId"] = id;
+        return View();
+    }
+
+    // POST: Posts/Create
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> Create([Bind("TopId,Texte")] Post post)
+    {
+        if (!ModelState.IsValid)
         {
-            @ViewData["TopicId"] = id;           
-            var frWs2BaselabContext = _context.Posts.Where(p=>p.Id == id);
-            return View(await frWs2BaselabContext.ToListAsync());
-        }
-
-        // GET: Posts/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var post = await _context.Posts
-                .Include(p => p.Top)
-                .Include(p => p.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (post == null)
-            {
-                return NotFound();
-            }
-
+            ViewData["TopicId"] = post.TopId;
             return View(post);
         }
 
-        // GET: Posts/Create
-        public IActionResult Create(int? id)
-        {
-            ViewData["TopicId"] = id;
-            return View();
-        }
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await _postService.CreateAsync(post, userId);
 
-        // POST: Posts/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("TopId,UserId,Inactive,Texte,Date")] Post post)
+        if (!result.Succeeded)
         {
-            if (ModelState.IsValid)
-            {
-                post.Date = DateTime.Now;
-                post.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                _context.Add(post);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index), new { id = post.TopId});
-            }
-            ViewData["TopId"] = post.Id;
+            ModelState.AddModelError(string.Empty, result.ErrorMessage!);
+            ViewData["TopicId"] = post.TopId;
             return View(post);
         }
 
-        // GET: Posts/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        TempData["SuccessMessage"] = "Le message a été créé avec succès.";
+        return RedirectToAction(nameof(Index), new { id = post.TopId });
+    }
+
+    // GET: Posts/Edit/5
+    [Authorize]
+    public async Task<IActionResult> Edit(int? id)
+    {
+        if (id is null) return NotFound();
+
+        var result = await _postService.GetForEditAsync(id.Value);
+
+        if (!result.Succeeded || result.Value is null)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var post = await _context.Posts.FindAsync(id);
-            if (post == null)
-            {
-                return NotFound();
-            }
-            ViewData["TopId"] = new SelectList(_context.Topics, "Id", "Id", post.TopId);
-            ViewData["UserId"] = new SelectList(_context.AspNetUsers, "Id", "Id", post.UserId);
-            return View(post);
-        }
-
-        // POST: Posts/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,TopId,UserId,Inactive,Texte,Date")] Post post)
-        {
-            if (id != post.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(post);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!PostExists(post.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["TopId"] = new SelectList(_context.Topics, "Id", "Id", post.TopId);
-            ViewData["UserId"] = new SelectList(_context.AspNetUsers, "Id", "Id", post.UserId);
-            return View(post);
-        }
-
-        // GET: Posts/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var post = await _context.Posts
-                .Include(p => p.Top)
-                .Include(p => p.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (post == null)
-            {
-                return NotFound();
-            }
-
-            return View(post);
-        }
-
-        // POST: Posts/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var post = await _context.Posts.FindAsync(id);
-            if (post != null)
-            {
-                _context.Posts.Remove(post);
-            }
-
-            await _context.SaveChangesAsync();
+            TempData["ErrorMessage"] = result.ErrorMessage;
             return RedirectToAction(nameof(Index));
         }
 
-        private bool PostExists(int id)
+        return View(result.Value);
+    }
+
+    // POST: Posts/Edit/5
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> Edit(int id, [Bind("Id,TopId,Texte")] Post post)
+    {
+        if (id != post.Id) return NotFound();
+        if (!ModelState.IsValid) return View(post);
+
+        var result = await _postService.UpdateAsync(id, post);
+
+        if (!result.Succeeded)
         {
-            return _context.Posts.Any(e => e.Id == id);
+            ModelState.AddModelError(string.Empty, result.ErrorMessage!);
+            return View(post);
         }
+
+        TempData["SuccessMessage"] = "Le message a été modifié avec succès.";
+        return RedirectToAction(nameof(Index), new { id = post.TopId });
+    }
+
+    // GET: Posts/Delete/5
+    [Authorize]
+    public async Task<IActionResult> Delete(int? id)
+    {
+        if (id is null) return NotFound();
+
+        var result = await _postService.GetDetailsAsync(id.Value);
+
+        if (!result.Succeeded || result.Value is null)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return RedirectToAction(nameof(Index));
+        }
+
+        return View(result.Value);
+    }
+
+    // POST: Posts/Delete/5
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        var result = await _postService.DeleteAsync(id);
+
+        if (!result.Succeeded)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return RedirectToAction(nameof(Delete), new { id });
+        }
+
+        TempData["SuccessMessage"] = "Le message a été supprimé avec succès.";
+        return RedirectToAction(nameof(Index));
     }
 }

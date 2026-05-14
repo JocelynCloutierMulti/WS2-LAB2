@@ -70,9 +70,9 @@ public class TopicService : ITopicService
     }
 
 
-    public Task<bool> ExistsAsync(int id)
+    public async Task<bool> ExistsAsync(int id)
     {
-        throw new NotImplementedException();
+        return await _context.Topics.AnyAsync(t => t.Id == id);
     }
 
     public async Task<ServiceResult<List<Topic>>> GetByCategoryIdAsync(int categoryId)
@@ -128,9 +128,22 @@ public class TopicService : ITopicService
     }
 
 
-    public Task<ServiceResult<Topic>> GetForEditAsync(int id)
+    public async Task<ServiceResult<Topic>> GetForEditAsync(int id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var topic = await _context.Topics.FindAsync(id);
+
+            if (topic is null)
+                return ServiceResult<Topic>.Failure("Le sujet est introuvable.");
+
+            return ServiceResult<Topic>.Success(topic);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors du chargement du sujet {TopicId} pour modification.", id);
+            return ServiceResult<Topic>.Failure("Le sujet n'a pas pu être chargé.");
+        }
     }
 
     public async Task<ServiceResult<Topic>> UpdateAsync(int id, Topic topic)
