@@ -2,13 +2,12 @@
 
 @{
     ViewData["Title"] = "Index";
+    if(!User.IsInRole("ADMINISTRATOR")) return;
 }
 
-<h1>Index</h1>
+<h1>Catégories</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
+<p class="creer-p"><a asp-action="Create" class="creer-a">Créer une catégorie</a></p>
 <table class="table">
     <thead>
         <tr>
@@ -18,7 +17,7 @@
             <th>
                 @Html.DisplayNameFor(model => model.Name)
             </th>
-            <th>
+            <th class="th-long">
                 @Html.DisplayNameFor(model => model.Description)
             </th>
             <th>
@@ -28,26 +27,37 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
+    @foreach (var item in Model) {
+        <tr id="tr-Cat">
             <td>
-                @Html.DisplayFor(modelItem => item.Inactive)
+                @if(item.Inactive){<p style="color:red;font-weigth:bold;">Inactive</p>}
+                else{<p>Active</p>}
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Name)
+                <b>@Html.DisplayFor(modelItem => item.Name)</b>
             </td>
-            <td>
+            <td class="td-long">
                 @Html.DisplayFor(modelItem => item.Description)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Image)
+                @if (!string.IsNullOrEmpty(item.Image))
+                {
+                    <img src="~/images/categories/@item.Image"style="max-width:100px" />
+                }
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                <div class="boutonsTable">
+                    <a class="details-a" asp-action="Details" asp-route-id="@item.Id">Details</a>
+                    <a class="edit-a" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                    <a class="delete-a" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    <a class="boutonsTable-vert" 
+                        asp-controller="Topics" 
+                        asp-action="Index" 
+                        asp-route-id="@item.Id">Sujets
+                    </a>
+                </div>
             </td>
         </tr>
-}
+    }
     </tbody>
 </table>

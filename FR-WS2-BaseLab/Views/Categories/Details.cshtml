@@ -2,12 +2,13 @@
 
 @{
     ViewData["Title"] = "Details";
+    if(!User.IsInRole("ADMINISTRATOR")) return;
 }
 
 <h1>Details</h1>
 
 <div>
-    <h4>Category</h4>
+    <h4>Categorie</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -29,7 +30,13 @@
             @Html.DisplayFor(model => model.Description)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Image)
+            
+        @if (!string.IsNullOrEmpty(Model.Image))
+        {
+            <img src="~/images/categories/@Model.Image"
+                style="max-width:100px" />
+        }
+        @* @Html.DisplayNameFor(model => model.Image) *@
         </dt>
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.Image)

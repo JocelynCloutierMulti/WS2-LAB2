@@ -24,5 +24,3 @@ public class ServiceResult<T>
         return new ServiceResult<T>(false, default, errorMessage);
     }
 }
-
-

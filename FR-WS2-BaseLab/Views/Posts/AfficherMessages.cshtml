@@ -1,0 +1,35 @@
+@model IEnumerable<FR_WS2_BaseLab.Models.Post>
+
+@{
+    ViewData["Title"] = "AfficherMessages";
+    var titreSujet = Model.FirstOrDefault()?.Top?.Title;
+}
+<h1 style="text-align: center;" class="mb-4">Bienvenue dans le forum !</h1>
+
+<h2 id="h2-msg">Sujet discuté : <span id="span-msg"> @titreSujet</span> </h2>
+<div style="display: flex; justify-content: space-around; align-item:center; margin: 2rem auto;">
+    <a class="btn btn-success" asp-action="Create" asp-route-id="@(ViewData["TopicId"])">Publier un message</a>
+</div>
+<div class="row justify-content-around">
+    @foreach (var item in Model)
+    {
+        @if(item.Inactive) continue;
+        <div class="card carte" style="width: 30rem;">
+            <div class="card-body">
+                <h5 class="card-title message">@item.Texte</h5>
+                <p><i><small>Publié le @item.Date <br />Par <b> @item.User?.UserName</b></small></i></p>
+                <div class="card-footer">
+                    <a asp-action="Details" 
+                    asp-route-id="@item.Id"
+                    asp-route-topicId="@(ViewData["TopicId"])">Details</a> |
+                <a asp-action="Edit" 
+                    asp-route-id="@item.Id"
+                    asp-route-topicId="@(ViewData["TopicId"])">Edit</a> |
+                <a asp-action="Delete" 
+                    asp-route-id="@item.Id" 
+                    asp-route-topicId="@(ViewData["TopicId"])">Delete</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

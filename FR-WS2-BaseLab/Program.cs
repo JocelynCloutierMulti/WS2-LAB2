@@ -25,10 +25,16 @@ public class Program
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
         builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
         builder.Services.AddControllersWithViews();
 
-        builder.Services.AddScoped<ITopicService, TopicService>();
+        // ENREGISTREMENT DE SERVICES :
+        // Durée de vie = AddScoped (Une seule instance par requête HTTP)
+        builder.Services
+        .AddScoped<ICategoryService, CategoryService>()
+        .AddScoped<IPostService, PostService>()
+        .AddScoped<ITopicService, TopicService>();
 
         var app = builder.Build();
 
@@ -48,7 +54,7 @@ public class Program
         app.UseStaticFiles();
 
         app.UseRouting();
-
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllerRoute(
