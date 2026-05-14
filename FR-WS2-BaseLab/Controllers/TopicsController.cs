@@ -65,7 +65,7 @@ public class TopicsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> Create([Bind("CatId,UserId,Inactive,Title,Texte,Date,Views")] Topic topic)
+    public async Task<IActionResult> Create([Bind("Title,Texte")] Topic topic)
     {
         if (!ModelState.IsValid)
         {
@@ -109,7 +109,7 @@ public class TopicsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,CatId,Title,Texte, Inactive")] Topic topic)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Texte")] Topic topic)
     {
         if (id != topic.Id)
         {
