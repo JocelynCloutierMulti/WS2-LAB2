@@ -4,6 +4,7 @@ namespace FR_WS2_BaseLab.Services.Email
 {
 	public class IdentityEmailSender : IEmailSender
 	{
+
 		private readonly IApplicationEmailSender _emailSender;
 
 		public IdentityEmailSender(IApplicationEmailSender emailSender)
