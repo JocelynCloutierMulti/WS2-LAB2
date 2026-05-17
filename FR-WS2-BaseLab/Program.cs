@@ -18,11 +18,8 @@ public class Program
 
         // Add services to the container.
         var connectionString = builder.Configuration.GetConnectionString("FR-WS2-BASELAB") ?? throw new InvalidOperationException("Connection string 'FR-WS2-BASELAB' not found.");
-		builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
-		builder.Services.AddTransient<IApplicationEmailSender, MailKitEmailSender>();
-        builder.Services.AddTransient<IEmailSender, IdentityEmailSender>();
-
-		builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));  
         
         builder.Services.AddDbContext<FrWs2BaselabContext>(options =>
