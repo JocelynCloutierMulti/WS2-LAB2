@@ -1,4 +1,5 @@
 ﻿using FR_WS2_BaseLab.Models;
+using FR_WS2_BaseLab.Services.Email;
 using FR_WS2_BaseLab.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,14 +8,16 @@ namespace FR_WS2_BaseLab.Services.Implementations
 	public class PostService : IPostService
 	{
 		private readonly FrWs2BaselabContext _context;
+		private readonly IApplicationEmailSender _emailSender ;
 		private readonly ILogger<PostService> _logger;
 
 		public PostService(
 			FrWs2BaselabContext context,
-			ILogger<PostService> logger)
+			ILogger<PostService> logger , IApplicationEmailSender emailSender)
 		{
 			_context = context;
 			_logger = logger;
+			_emailSender =emailSender;
 		}
 
 		// Liste des messages d'un sujet (Index).
@@ -86,13 +89,29 @@ namespace FR_WS2_BaseLab.Services.Implementations
 
 			try
 			{
-				// Valeurs définies côté serveur (anti-manipulation).
+				
 				post.UserId = userId;
 				post.Date = DateTime.Now;
 				post.Inactive = false;
 
 				_context.Posts.Add(post);
 				await _context.SaveChangesAsync();
+				var topic = await _context.Topics
+					.Include(t => t.User)
+					.FirstOrDefaultAsync(t => t.Id == post.TopId);
+
+				var subject = $"Nouveau message dans :{topic.Title}";
+				var html = $@"
+							<p> Bonjour, message  a été ajouter dans ce sujet </p>";
+				try
+				{
+					await _emailSender.SendAsync(topic.User.Email, subject, html);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex, "Échec d'envoi");
+				}
+
 
 				return ServiceResult.Success();
 			}

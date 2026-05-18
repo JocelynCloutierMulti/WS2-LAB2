@@ -24,7 +24,7 @@ public class Program
 
 		builder.Services.AddTransient<IApplicationEmailSender, MailKitEmailSender>();
 		builder.Services.AddTransient<IEmailSender, IdentityEmailSender>();
-        //tt
+        
 		builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));  
         
