@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace FR_WS2_BaseLab.Models;
+﻿namespace FR_WS2_BaseLab.Models;
 
 public partial class Topic
 {
