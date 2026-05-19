@@ -9,10 +9,12 @@ namespace FR_WS2_BaseLab.Controllers
     public class PostsController : Controller
     {
         private readonly IPostService _postService;
+        private readonly IForumEmailService _forumEmailService;
 
-        public PostsController(IPostService postService)
+        public PostsController(IPostService postService, IForumEmailService forumEmailService)
         {
             _postService = postService;
+            _forumEmailService = forumEmailService;
         }
 
         // GET: Posts
@@ -76,6 +78,8 @@ namespace FR_WS2_BaseLab.Controllers
 
             if (result.Succeeded)
             {
+                var topicUrl = Url.Action(nameof(Index), "Posts", new { id = post.TopId }, Request.Scheme) ?? string.Empty;
+                await _forumEmailService.NotifyTopicAuthorOfNewPostAsync(post.TopId, userId, topicUrl);
                 return RedirectToAction(nameof(Index), new { id = post.TopId });
             }
 

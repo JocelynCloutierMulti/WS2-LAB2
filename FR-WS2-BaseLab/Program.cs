@@ -3,7 +3,9 @@ using FR_WS2_BaseLab.Models;
 using FR_WS2_BaseLab.Services.Implementations;
 using FR_WS2_BaseLab.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using IdentityEmailSender = Microsoft.AspNetCore.Identity.IEmailSender<Microsoft.AspNetCore.Identity.IdentityUser>;
 
 namespace FR_WS2_BaseLab;
 
@@ -27,10 +29,15 @@ public class Program
         builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
         builder.Services.AddControllersWithViews();
+        builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
         builder.Services.AddScoped<ICategoryService, CategoryService>();
         builder.Services.AddScoped<ITopicService, TopicService>();
         builder.Services.AddScoped<IPostService, PostService>();
+        builder.Services.AddTransient<SmtpEmailSender>();
+        builder.Services.AddTransient<IEmailSender>(sp => sp.GetRequiredService<SmtpEmailSender>());
+        builder.Services.AddTransient<IdentityEmailSender>(sp => sp.GetRequiredService<SmtpEmailSender>());
+        builder.Services.AddScoped<IForumEmailService, ForumEmailService>();
 
         var app = builder.Build();
 
@@ -51,6 +58,7 @@ public class Program
 
         app.UseRouting();
 
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllerRoute(
