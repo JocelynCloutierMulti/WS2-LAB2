@@ -55,7 +55,7 @@
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> | 
-    @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("ADMINISTRATOR")) 
+    @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin")) 
     {
        <a asp-action="Index" asp-route-id="@Model?.CatId">Back to List</a> 
     }

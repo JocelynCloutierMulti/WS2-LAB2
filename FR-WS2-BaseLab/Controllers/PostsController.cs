@@ -18,7 +18,7 @@ namespace FR_WS2_BaseLab.Controllers
         private readonly ITopicService _topicService = topicService;
 
         // GET: Topics
-        [Authorize(Roles = "ADMINISTRATOR")]
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public IActionResult Index()
         {
@@ -26,7 +26,7 @@ namespace FR_WS2_BaseLab.Controllers
         }
 
         // GET: Posts par sujets
-        [Authorize(Roles = "ADMINISTRATOR")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("Posts/Index/{id}")]
         // GET: Posts
         public async Task<IActionResult> Index(int? id)
@@ -119,8 +119,8 @@ namespace FR_WS2_BaseLab.Controllers
                 return RedirectToAction(nameof(Details), new { id });
             }
             var post = result.Value;
-            if (post.UserId != userId && !User.IsInRole("ADMINISTRATOR")) return Forbid();
-            if (User.IsInRole("ADMINISTRATOR"))
+            if (post.UserId != userId && !User.IsInRole("Admin")) return Forbid();
+            if (User.IsInRole("Admin"))
             {
                 ViewData["TopId"] = new SelectList(_context.Topics, "Id", "Title", result.Value?.TopId);
                 ViewData["UserName"] = new SelectList(_context.AspNetUsers, "Id", "UserName", post.UserId);
@@ -139,7 +139,7 @@ namespace FR_WS2_BaseLab.Controllers
             ViewData["TopicId"] = post.TopId;
             if (!ModelState.IsValid) return View(post);
             var autorise = false;
-            if (User.IsInRole("ADMINISTRATOR")) autorise = true;
+            if (User.IsInRole("Admin")) autorise = true;
             var result = await _postService.UpdateAsync(id, post, autorise);
             if (!result.Succeeded || result.Value is null)
             {
@@ -163,7 +163,7 @@ namespace FR_WS2_BaseLab.Controllers
                 return RedirectToAction(nameof(Details), new { id });
             }
             var post = result.Value;
-            if (post.UserId != userId && !User.IsInRole("ADMINISTRATOR")) return Forbid();
+            if (post.UserId != userId && !User.IsInRole("Admin")) return Forbid();
             ViewData["TopicId"] = topicId;
             return View(result.Value); 
         }
@@ -181,7 +181,7 @@ namespace FR_WS2_BaseLab.Controllers
                 return RedirectToAction(nameof(Details), new { id });
             }
             var sujetId = result.Value.TopId;
-            if (User.IsInRole("ADMINISTRATOR"))
+            if (User.IsInRole("Admin"))
                 return RedirectToAction(nameof(Index), new { id = sujetId });
             return RedirectToAction(nameof(AfficherMessages), new { id = sujetId});
         }

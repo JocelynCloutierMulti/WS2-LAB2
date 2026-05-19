@@ -19,14 +19,14 @@ public class TopicsController(
 
     // GET: Topics
     [HttpGet]
-    [Authorize(Roles = "ADMINISTRATOR")]
+    [Authorize(Roles = "Admin")]
     public IActionResult Index()
     {
         return RedirectToAction("Index", "Categories");
     }
 
     // GET: Topics par catégorie
-    [Authorize(Roles = "ADMINISTRATOR")]
+    [Authorize(Roles = "Admin")]
     [HttpGet("Topics/Index/{id}")]
     public async Task<IActionResult> Index(int? id)
     {
@@ -69,7 +69,7 @@ public class TopicsController(
     public async Task<IActionResult> Create(int? id)
     {
         if (id is null) return NotFound();
-        if (User.IsInRole("ADMINISTRATOR"))
+        if (User.IsInRole("Admin"))
         {
             ViewBag.Categories = new SelectList(
                 _context.Categories.Where(c => !c.Inactive),"Id","Name",id.Value);
@@ -89,14 +89,14 @@ public class TopicsController(
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId is null) return Challenge();
-        if (!User.IsInRole("ADMINISTRATOR")) topic.UserId = userId;
+        if (!User.IsInRole("Admin")) topic.UserId = userId;
         else if (string.IsNullOrWhiteSpace(topic.UserId)){
             topic.UserId = userId;
             ModelState.Remove("UserId");
         }
         if (!ModelState.IsValid)
         {
-            if (User.IsInRole("ADMINISTRATOR"))
+            if (User.IsInRole("Admin"))
             {
                 ViewBag.Categories = new SelectList(
                     _context.Categories.Where(c => !c.Inactive),"Id","Name",topic.CatId);
@@ -108,7 +108,7 @@ public class TopicsController(
         if (!result.Succeeded)
         {
             ModelState.AddModelError("", result.ErrorMessage!);
-            if (User.IsInRole("ADMINISTRATOR"))
+            if (User.IsInRole("Admin"))
             {
                 ViewBag.Categories = new SelectList(_context.Categories.Where(c => !c.Inactive), "Id", "Name", topic.CatId);
                 ViewBag.Users = new SelectList(_appUser.Users.ToList(), "Id", "UserName", topic.UserId);
@@ -132,8 +132,8 @@ public class TopicsController(
             return RedirectToAction(nameof(Details), new { id });
         } 
         var topic = result.Value;
-        if (topic.UserId != userId && !User.IsInRole("ADMINISTRATOR")) return Forbid();
-        if (User.IsInRole("ADMINISTRATOR"))
+        if (topic.UserId != userId && !User.IsInRole("Admin")) return Forbid();
+        if (User.IsInRole("Admin"))
         {
             ViewData["Name"] = new SelectList(_context.Categories, "Id", "Name", topic.CatId);
             ViewData["UserName"] = new SelectList(_context.AspNetUsers, "Id", "UserName", topic.UserId);
@@ -150,10 +150,10 @@ public class TopicsController(
     public async Task<IActionResult> Edit(int id, [Bind("Id,CatId,UserId,Inactive,Title,Texte,Date,Views")] Topic topic)
     {
         if (id != topic.Id) return NotFound();
-        var autorise = User.IsInRole("ADMINISTRATOR");
+        var autorise = User.IsInRole("Admin");
         if (!ModelState.IsValid)
         { 
-            if (User.IsInRole("ADMINISTRATOR")) 
+            if (autorise)
             {
                  ViewData["Name"] = new SelectList(_context.Categories, "Id", "Name", topic.CatId);
                  ViewData["UserName"] = new SelectList(_context.AspNetUsers, "Id", "UserName", topic.UserId);
@@ -188,7 +188,7 @@ public class TopicsController(
             return RedirectToAction(nameof(Details), new { id });
         }
         var topic = result.Value;
-        if (topic.UserId != userId && !User.IsInRole("ADMINISTRATOR")) return Forbid();
+        if (topic.UserId != userId && !User.IsInRole("Admin")) return Forbid();
         return View(result.Value);
     }
 
@@ -205,7 +205,7 @@ public class TopicsController(
                 return RedirectToAction(nameof(Details), new { id });
             }
         var categId = result.Value.CatId;
-        if (User.IsInRole("ADMINISTRATOR"))
+        if (User.IsInRole("Admin"))
         {
            return RedirectToAction(nameof(Index), new { id = categId }); 
         }

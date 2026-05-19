@@ -133,7 +133,7 @@ a.nav-lien, .btn-lien{
    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
-#lien-gestion{
+#lien-gestion, #lien-contact{
   color: linen;
 }
 
@@ -325,4 +325,66 @@ td, th{
 
 .card{
   word-break: break-all;
+}
+
+.blocXL{
+  background-image: url("/images/img_app/messagerie.jpg");
+  background-position: center;
+  background-size: cover;
+  border: 3px groove darkslateblue;
+    padding: 4rem 5rem;
+}
+
+
+.blocExterne{
+  background-color: black;
+  border: 3px groove darkgreen;
+}
+
+form.formContact{
+  width: 100%;
+  padding: 5rem 7rem;
+  margin: 0 auto;
+  width: 100%;
+   display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.btn-contact{
+  color: black;
+  font-weight: bold;
+  background-color: gold;
+}
+
+.btn-contact:hover{
+  color: black;
+  background-color: thistle;
+}
+
+.formContact legend, .formContact label{
+  color: goldenrod;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  font-size: 1.3em;
+}
+
+.formContact legend{
+  border-bottom: 3px groove goldenrod;
+  font-size: 1.5em;
+}
+
+.formContact input[type="text"], .formContact input[type="email"], .formContact textarea{
+  border: 3px groove goldenrod;
+   border-radius: 5px;
+  padding: 0.5rem;
+  background-color: lightgoldenrodyellow; 
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: 1.2em;
+  padding: 0.5rem 1em ;
+}
+
+@media (max-width: 768px) {
+  .blocXL{
+    padding: 0;
+  }
 }

@@ -12,7 +12,7 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
              <input type="hidden" name="topicId" value="@ViewData["TopicId"]" />
-            @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("ADMINISTRATOR"))
+            @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
             {
                 <div class="form-group">
                     <label asp-for="TopId" class="control-label"></label>
@@ -50,7 +50,7 @@
     </div>
 </div>
 <div>
-    @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("ADMINISTRATOR")) 
+    @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin")) 
     {
         <a asp-action="Index" asp-route-id="@ViewData["TopicId"]">Back to List</a>
     }

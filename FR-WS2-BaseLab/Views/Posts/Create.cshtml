@@ -23,7 +23,7 @@
     </div>
 </div>
 <div>
-    @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("ADMINISTRATOR")) 
+    @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin")) 
     {
         <a asp-action="Index" asp-route-id="@Model?.Id" asp-route-topicId="@(ViewData["TopicId"])">Back to List</a>
     }

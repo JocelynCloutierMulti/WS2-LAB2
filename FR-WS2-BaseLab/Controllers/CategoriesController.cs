@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FR_WS2_BaseLab.Controllers;
 
-[Authorize(Roles = "ADMINISTRATOR")]
+[Authorize(Roles = "Admin")]
 
 public class CategoriesController(ICategoryService categoryService) : Controller
 {

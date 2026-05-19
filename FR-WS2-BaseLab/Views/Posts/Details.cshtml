@@ -47,7 +47,7 @@
     <div>
         @if (ViewData["TopicId"] != null)
         {
-             @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("ADMINISTRATOR")) 
+             @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin")) 
             {
                  <a asp-action="Index" asp-route-id="@ViewData["TopicId"]">Back to List</a>
             }

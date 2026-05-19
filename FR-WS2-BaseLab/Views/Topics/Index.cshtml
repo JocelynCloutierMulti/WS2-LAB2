@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Index";
-    if(!User.IsInRole("ADMINISTRATOR")) return;
+    if(!User.IsInRole("Admin")) return;
 }
 <h1>Sujets</h1>
 @if (ViewData["CategoryId"] != null)

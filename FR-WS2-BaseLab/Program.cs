@@ -1,9 +1,13 @@
 using FR_WS2_BaseLab.Data;
 using FR_WS2_BaseLab.Models;
+using FR_WS2_BaseLab.Options;
 using FR_WS2_BaseLab.Services.Implementations;
 using FR_WS2_BaseLab.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using FR_WS2_BaseLab.Services.Email;
+using Microsoft.AspNetCore.Identity.UI.Services;
+
 
 namespace FR_WS2_BaseLab;
 
@@ -24,9 +28,12 @@ public class Program
         
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-        builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-            .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<ApplicationDbContext>();
+        // Identity configuration
+        builder.Services.AddDefaultIdentity<IdentityUser>(options => 
+            options.SignIn.RequireConfirmedAccount = true)
+                .AddRoles<IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>();
+
         builder.Services.AddControllersWithViews();
 
         // ENREGISTREMENT DE SERVICES :
@@ -35,6 +42,11 @@ public class Program
         .AddScoped<ICategoryService, CategoryService>()
         .AddScoped<IPostService, PostService>()
         .AddScoped<ITopicService, TopicService>();
+
+        // Configure services for email sending
+        builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+        builder.Services.AddTransient<IApplicationEmailSender, MailKitEmailSender>();
+        builder.Services.AddTransient<IEmailSender, IdentityEmailSender>();
 
         var app = builder.Build();
 

@@ -11,7 +11,7 @@
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
-              @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("ADMINISTRATOR"))
+              @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
             { 
                 <div class="form-group">
                     <label asp-for="CatId" class="control-label">Catégorie</label>
@@ -59,7 +59,7 @@
     </div>
 </div>
 <div>
-    @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("ADMINISTRATOR")) 
+    @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin")) 
         {
         <a asp-action="Index" asp-route-id="@Model?.CatId">Back to List</a>
         }

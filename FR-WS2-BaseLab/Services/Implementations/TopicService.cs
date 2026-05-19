@@ -17,8 +17,9 @@ public class TopicService(
             var topics = await _context.Topics
                 .AsNoTracking()
                 .Include(t => t.Cat) 
+                .Include(t => t.User)
                 .Include(t => t.Posts) 
-                .ThenInclude(p => p.User)
+                    .ThenInclude(p => p.User)
                 .Where(t => t.CatId == categoryId)
                 .OrderByDescending(t => t.Date)
                 .ToListAsync();
