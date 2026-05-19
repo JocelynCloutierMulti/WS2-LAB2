@@ -7,23 +7,33 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using FR_WS2_BaseLab.Models;
 using System.Security.Claims;
+using FR_WS2_BaseLab.Services.Email;
+using Microsoft.AspNetCore.Identity;
 
 namespace FR_WS2_BaseLab.Controllers
 {
     public class PostsController : Controller
     {
         private readonly FrWs2BaselabContext _context;
+        private readonly IApplicationEmailSender _emailSender;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public PostsController(FrWs2BaselabContext context)
+        public PostsController(FrWs2BaselabContext context, 
+        IApplicationEmailSender emailSender,
+        UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _emailSender = emailSender;
+            _userManager = userManager;
         }
-
         // GET: Posts
         public async Task<IActionResult> Index(int? id)
         {
             @ViewData["TopicId"] = id;           
-            var frWs2BaselabContext = _context.Posts.Where(p=>p.Id == id);
+            var frWs2BaselabContext = _context.Posts
+                .Include(p=>p.Top)
+                .Include(p=>p.User)
+                .Where(p=>p.TopId == id);
             return View(await frWs2BaselabContext.ToListAsync());
         }
 
@@ -67,9 +77,21 @@ namespace FR_WS2_BaseLab.Controllers
                 post.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 _context.Add(post);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index), new { id = post.TopId});
+
+                var topic = await _context.Topics
+                    .Include(t => t.User)
+                    .FirstOrDefaultAsync(t => t.Id == post.TopId);
+
+                if (topic?.User != null && 
+                    topic.User.EmailConfirmed == true && !string.IsNullOrWhiteSpace(topic.User.Email) && topic.UserId != post.UserId)
+                { 
+                    await _emailSender.SendAsync(topic.User.Email,
+                        $"Nouveau message dans: {topic.Title}",
+                        $"<p>Un nouveau message a été ajouté dans votre sujet <strong>{topic.Title}</strong>.</p>"
+                    );
+                }
+                    return RedirectToAction(nameof(Index), new { id = post.TopId });
             }
-            ViewData["TopId"] = post.Id;
             return View(post);
         }
 

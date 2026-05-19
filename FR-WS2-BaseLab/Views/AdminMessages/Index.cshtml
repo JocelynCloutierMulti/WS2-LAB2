@@ -1,0 +1,35 @@
+@model FR_WS2_BaseLab.Models.ViewModels.AdminEmailViewModel
+@{
+    ViewData["Title"] = "Envoyer un courriel";
+    var users = ViewData["Users"] as List<Microsoft.AspNetCore.Identity.IdentityUser>;
+}
+
+<h2>Envoyer un courriel à un utilisateur</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+<form asp-action="Index" method="post">
+    <div class="mb-3">
+        <label class="form-label">Destinataire</label>
+        <select asp-for="ToEmail" class="form-select">
+            <option value="">-- Choisir un utilisateur --</option>
+            @foreach (var user in users!)
+            {
+                <option value="@user.Email">@user.Email</option>
+            }
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Sujet</label>
+        <input asp-for="Subject" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Message</label>
+        <textarea asp-for="Body" class="form-control"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Envoyer</button>
+</form>

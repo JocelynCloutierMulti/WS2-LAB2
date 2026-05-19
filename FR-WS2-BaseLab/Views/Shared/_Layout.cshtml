@@ -22,9 +22,12 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+                        @if (User.IsInRole("ADMINISTRATOR"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="AdminMessages" asp-action="Index">Envoyer un courriel</a>
+                            </li>
+                        }
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Categories" asp-action="Index">Category For Admin</a>
                         </li>
@@ -42,7 +45,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - FR_WS2_BaseLab - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2026 - FR_WS2_BaseLab - Isabelle Bruneau Lab #3
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

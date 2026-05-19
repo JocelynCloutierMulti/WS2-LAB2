@@ -42,6 +42,7 @@ public partial class FrWs2BaselabContext : DbContext
     {
         modelBuilder.Entity<AspNetRole>(entity =>
         {
+            entity.ToTable("AspNetRoles", t => t.ExcludeFromMigrations());
             entity.HasIndex(e => e.NormalizedName, "RoleNameIndex")
                 .IsUnique()
                 .HasFilter("([NormalizedName] IS NOT NULL)");
@@ -52,6 +53,7 @@ public partial class FrWs2BaselabContext : DbContext
 
         modelBuilder.Entity<AspNetRoleClaim>(entity =>
         {
+            entity.ToTable("AspNetRoleClaims", t => t.ExcludeFromMigrations());
             entity.HasIndex(e => e.RoleId, "IX_AspNetRoleClaims_RoleId");
 
             entity.HasOne(d => d.Role).WithMany(p => p.AspNetRoleClaims).HasForeignKey(d => d.RoleId);
@@ -59,6 +61,7 @@ public partial class FrWs2BaselabContext : DbContext
 
         modelBuilder.Entity<AspNetUser>(entity =>
         {
+            entity.ToTable("AspNetUsers", t => t.ExcludeFromMigrations());
             entity.HasIndex(e => e.NormalizedEmail, "EmailIndex");
 
             entity.HasIndex(e => e.NormalizedUserName, "UserNameIndex")
@@ -78,13 +81,14 @@ public partial class FrWs2BaselabContext : DbContext
                     j =>
                     {
                         j.HasKey("UserId", "RoleId");
-                        j.ToTable("AspNetUserRoles");
+                        j.ToTable("AspNetUserRoles", t => t.ExcludeFromMigrations());
                         j.HasIndex(new[] { "RoleId" }, "IX_AspNetUserRoles_RoleId");
                     });
         });
 
         modelBuilder.Entity<AspNetUserClaim>(entity =>
         {
+            entity.ToTable("AspNetUserClaims", t => t.ExcludeFromMigrations());
             entity.HasIndex(e => e.UserId, "IX_AspNetUserClaims_UserId");
 
             entity.HasOne(d => d.User).WithMany(p => p.AspNetUserClaims).HasForeignKey(d => d.UserId);
@@ -92,6 +96,7 @@ public partial class FrWs2BaselabContext : DbContext
 
         modelBuilder.Entity<AspNetUserLogin>(entity =>
         {
+            entity.ToTable("AspNetUserLogins", t => t.ExcludeFromMigrations());
             entity.HasKey(e => new { e.LoginProvider, e.ProviderKey });
 
             entity.HasIndex(e => e.UserId, "IX_AspNetUserLogins_UserId");
@@ -104,6 +109,7 @@ public partial class FrWs2BaselabContext : DbContext
 
         modelBuilder.Entity<AspNetUserToken>(entity =>
         {
+            entity.ToTable("AspNetUserTokens", t => t.ExcludeFromMigrations());
             entity.HasKey(e => new { e.UserId, e.LoginProvider, e.Name });
 
             entity.Property(e => e.LoginProvider).HasMaxLength(128);
@@ -115,7 +121,7 @@ public partial class FrWs2BaselabContext : DbContext
         modelBuilder.Entity<Category>(entity =>
         {
             entity.Property(e => e.Id).HasColumnName("ID");
-            entity.Property(e => e.Description).HasMaxLength(250);
+            entity.Property(e => e.Description).HasMaxLength(1000);
             entity.Property(e => e.Image).HasMaxLength(250);
             entity.Property(e => e.Inactive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(50);
