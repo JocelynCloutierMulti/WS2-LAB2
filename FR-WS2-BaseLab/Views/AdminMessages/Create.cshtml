@@ -1,0 +1,47 @@
+@model FR_WS2_BaseLab.Models.ViewModels.AdminEmailViewModel
+
+@{
+    ViewData["Title"] = "Messagerie";
+    if(!User.IsInRole("Admin")) return;
+}
+
+<h1 style="text-align: center;" class="mb-4">Messagerie</h1>
+<div class="blocXL">
+    <div class="blocExterne">
+        <form class="formContact" asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success text-center">
+        @TempData["Success"]
+    </div>
+}
+
+            <legend class="legend-contact">Envoyer un message</legend>
+            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+            <div class="form-group">
+                <label asp-for="ToEmail" class="control-label">Destinataire</label>
+                <input type="email" asp-for="ToEmail" class="form-control" />
+                <span asp-validation-for="ToEmail" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Subject" class="control-label">Sujet</label>
+                <input type="text" asp-for="Subject" class="form-control" />
+                <span asp-validation-for="Subject" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Message" class="control-label">Message</label>
+                <textarea asp-for="Message" rows="7" class="form-control"></textarea>
+                <span asp-validation-for="Message" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Envoyer" class="btn-contact btn details-a" />
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

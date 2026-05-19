@@ -1,0 +1,60 @@
+@model IEnumerable<FR_WS2_BaseLab.Models.Topic>
+
+@{
+    ViewData["Title"] = "AfficherSujets";
+    var titreCat = Model.FirstOrDefault()?.Cat?.Name;
+    var idCat = Model.FirstOrDefault()?.Cat?.Id;
+}
+<h1 style="text-align: center;" class="mb-4">Catégorie : @titreCat</h1>
+
+<h2 id="h2-msg">SUJETS</h2>
+<div class="boutonsTop">
+    @if (ViewData["CategoryId"] != null)
+    {
+        @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin")) 
+        {
+            <a asp-action="Index" class="edit-a" asp-route-id="@ViewData["CategoryId"]">&LeftArrow; Retour</a>
+        }
+        else
+        {
+            <a class="edit-a" asp-controller="Home"asp-action="Index">&LeftArrow; Retour</a>
+        } 
+    }
+     <a class="btn btn-violet" asp-action="Create" asp-route-id="@idCat">Créer un sujet</a>
+</div>
+<div class="row justify-content-around">
+    @foreach (var item in Model)
+    {
+        @if(item.Inactive) continue;
+        <div class="card carte" style="width: 30rem;">
+            <div class="card-body">
+                <h5 class="card-title message">@item.Title</h5>
+                <h6 class="card-subtitle mb-2 text-body-secondary">@item.Texte</h6>
+                <p><i><small>Créé le @item.Date <br />Par <b> @item.User?.UserName</b></small></i></p>
+                <div class="card-footer">
+                    <a asp-action="Details" 
+                        asp-route-id="@item.Id">Details</a>
+                    <a asp-action="Edit" 
+                        asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Delete" 
+                        asp-route-id="@item.Id">Delete</a>
+                    @if(item.Posts.Any()){
+                        <a class="btn btn-success" 
+                        asp-controller="Posts" 
+                        asp-action="AfficherMessages" 
+                        asp-route-id="@item.Id">Messages
+                        </a>
+                    }
+                    else{
+                        <div> 
+                            <a class="btn btn-primary" 
+                                asp-controller="Posts" 
+                                asp-action="Create" 
+                                asp-route-id="@item.Id">Publier</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

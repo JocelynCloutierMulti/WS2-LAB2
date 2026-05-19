@@ -1,52 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using FR_WS2_BaseLab.Models;
+﻿using FR_WS2_BaseLab.Models;
+using FR_WS2_BaseLab.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FR_WS2_BaseLab.Controllers;
 
-public class CategoriesController : Controller
-{
-    private readonly FrWs2BaselabContext _context;
+[Authorize(Roles = "Admin")]
 
-    public CategoriesController(FrWs2BaselabContext context)
-    {
-        _context = context;
-    }
+public class CategoriesController(ICategoryService categoryService) : Controller
+{
+    private readonly ICategoryService _categoryService = categoryService;
 
     // GET: Categories
-    [Authorize(Roles = "ADMINISTRATOR")]
     public async Task<IActionResult> Index()
     {
-        return View(await _context.Categories.ToListAsync());
+        var result = await _categoryService.GetAllAsync();
+        if (!result.Succeeded)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return RedirectToAction(nameof(Index), "Home");
+        }
+        return View(result.Value);
     }
 
     // GET: Categories/Details/5
-    [Authorize(Roles = "ADMINISTRATOR")]
-    public async Task<IActionResult> Details(int? id)
+    public async Task<IActionResult> Details(int ? id)
     {
-        if (id == null)
+       if (id is null) return NotFound();
+        var result = await _categoryService.GetByIdAsync(id.Value);
+        if (!result.Succeeded)
         {
-            return NotFound();
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return RedirectToAction(nameof(Index), "Home");
         }
-
-        var category = await _context.Categories
-            .FirstOrDefaultAsync(m => m.Id == id);
-        if (category == null)
-        {
-            return NotFound();
-        }
-
-        return View(category);
+        return View(result.Value);
     }
 
     // GET: Categories/Create
-    [Authorize(Roles = "ADMINISTRATOR")]
     public IActionResult Create()
     {
         return View();
@@ -57,33 +47,30 @@ public class CategoriesController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "ADMINISTRATOR")]
-    public async Task<IActionResult> Create([Bind("Id,Inactive,Name,Description,Image")] Category category)
+    public async Task<IActionResult> Create(
+        [Bind("Id,Inactive,Name,Description,Image")] Category category, IFormFile? imageFile)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid) return View(category);
+        var result = await _categoryService.CreateAsync(category, imageFile);
+        if (!result.Succeeded)
         {
-            _context.Add(category);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index), "Home");
+            ModelState.AddModelError(string.Empty, result.ErrorMessage!);
+            return View(category);
         }
-        return View(category);
+        return RedirectToAction(nameof(Index));
     }
 
     // GET: Categories/Edit/5
-    [Authorize(Roles = "ADMINISTRATOR")]
     public async Task<IActionResult> Edit(int? id)
     {
-        if (id == null)
+        if (id is null) return NotFound();
+        var result = await _categoryService.GetByIdAsync(id.Value);
+        if (!result.Succeeded)
         {
-            return NotFound();
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return RedirectToAction(nameof(Index));
         }
-
-        var category = await _context.Categories.FindAsync(id);
-        if (category == null)
-        {
-            return NotFound();
-        }
-        return View(category);
+        return View(result.Value); 
     }
 
     // POST: Categories/Edit/5
@@ -91,74 +78,44 @@ public class CategoriesController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "ADMINISTRATOR")]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,Inactive,Name,Description,Image")] Category category)
+    public async Task<IActionResult> Edit(int id, 
+        [Bind("Id,Inactive,Name,Description")] Category category, IFormFile? imageFile)
     {
-        if (id != category.Id)
+        if (id != category.Id) return NotFound();
+        if (!ModelState.IsValid) return View(category);
+        var result = await _categoryService.UpdateAsync(id, category, imageFile);
+        if (!result.Succeeded)
         {
-            return NotFound();
+            ModelState.AddModelError(string.Empty, result.ErrorMessage!);
+            return View(category);
         }
-
-        if (ModelState.IsValid)
-        {
-            try
-            {
-                _context.Update(category);
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CategoryExists(category.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            return RedirectToAction(nameof(Index));
-        }
-        return View(category);
+        return RedirectToAction(nameof(Index));
     }
 
     // GET: Categories/Delete/5
-    [Authorize(Roles = "ADMINISTRATOR")]
     public async Task<IActionResult> Delete(int? id)
     {
-        if (id == null)
+        if (id is null) return NotFound();
+        var result = await _categoryService.GetByIdAsync(id.Value);
+        if (!result.Succeeded)
         {
-            return NotFound();
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return RedirectToAction(nameof(Index));
         }
-
-        var category = await _context.Categories
-            .FirstOrDefaultAsync(m => m.Id == id);
-        if (category == null)
-        {
-            return NotFound();
-        }
-
-        return View(category);
+        return View(result.Value); 
     }
 
     // POST: Categories/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "ADMINISTRATOR")]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var category = await _context.Categories.FindAsync(id);
-        if (category != null)
+         var result = await _categoryService.DeleteAsync(id);
+        if (!result.Succeeded)
         {
-            _context.Categories.Remove(category);
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return RedirectToAction(nameof(Delete), new { id });
         }
-
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
-    }
-
-    private bool CategoryExists(int id)
-    {
-        return _context.Categories.Any(e => e.Id == id);
+       return RedirectToAction(nameof(Index));
     }
 }
