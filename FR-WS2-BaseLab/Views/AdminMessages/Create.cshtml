@@ -1,0 +1,31 @@
+﻿@model FR_WS2_BaseLab.Models.ViewModels.AdminEmailViewModel
+<h2>Envoyer un courriel</h2>
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div> 
+}
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label asp-for="ToEmail" class="form-label"></label>
+        <input asp-for="ToEmail" class="form-control" />
+        <span asp-validation-for="ToEmail" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Subject" class="form-label"></label>
+        <input asp-for="Subject" class="form-control" />
+        <span asp-validation-for="Subject" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Message" class="form-label"></label>
+        <textarea asp-for="Message" class="form-control" rows="6"></textarea>
+        <span asp-validation-for="Message" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Envoyer</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

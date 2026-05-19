@@ -65,7 +65,7 @@ public class TopicsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> Create([Bind("Title,Texte")] Topic topic)
+    public async Task<IActionResult> Create([Bind("CatId,Title,Texte")] Topic topic)
     {
         if (!ModelState.IsValid)
         {

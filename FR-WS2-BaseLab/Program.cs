@@ -1,8 +1,11 @@
 using FR_WS2_BaseLab.Data;
 using FR_WS2_BaseLab.Models;
+using FR_WS2_BaseLab.Options;
+using FR_WS2_BaseLab.Services.Email;
 using FR_WS2_BaseLab.Services.Implementations;
 using FR_WS2_BaseLab.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace FR_WS2_BaseLab;
@@ -35,6 +38,12 @@ public class Program
 
         builder.Services.AddScoped<IPostService, PostService>();
 
+        builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+
+        builder.Services.AddTransient<IApplicationEmailSender, MailKitEmailSender>();
+
+        builder.Services.AddTransient<IEmailSender, IdentityEmailSender>();
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -53,6 +62,8 @@ public class Program
         app.UseStaticFiles();
 
         app.UseRouting();
+
+        app.UseAuthentication();
 
         app.UseAuthorization();
 

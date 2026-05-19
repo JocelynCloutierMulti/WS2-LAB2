@@ -72,6 +72,7 @@ namespace FR_WS2_BaseLab.Controllers
         {
             if (ModelState.IsValid)
             {
+                post.TopId = TopId;
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var result = await _postService.CreateAsync(post, userId);
 
@@ -82,7 +83,7 @@ namespace FR_WS2_BaseLab.Controllers
 
                 ModelState.AddModelError(string.Empty, result.ErrorMessage!);
             }
-            ViewData["TopicId"] = post.TopId;
+            ViewData["TopicId"] = TopId;
             return View(post);
         }
 

@@ -28,6 +28,12 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Categories" asp-action="Index">Category For Admin</a>
                         </li>
+                        @if (User.IsInRole("ADMINISTRATOR"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="AdminMessages" asp-action="Create">Courriel Admin</a>
+                            </li>
+                        }
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>

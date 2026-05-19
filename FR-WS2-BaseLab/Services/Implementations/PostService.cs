@@ -1,4 +1,5 @@
 ﻿using FR_WS2_BaseLab.Models;
+using FR_WS2_BaseLab.Services.Email;
 using FR_WS2_BaseLab.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -8,13 +9,16 @@ public class PostService : IPostService
 {
     private readonly FrWs2BaselabContext _context;
     private readonly ILogger<PostService> _logger;
+    private readonly IApplicationEmailSender _emailSender;
 
     public PostService(
         FrWs2BaselabContext context,
-        ILogger<PostService> logger)
+        ILogger<PostService> logger,
+        IApplicationEmailSender emailSender)
     {
         _context = context;
         _logger = logger;
+        _emailSender = emailSender;
     }
 
     public async Task<ServiceResult<Post>> CreateAsync(Post post, string? userId)
@@ -30,6 +34,31 @@ public class PostService : IPostService
             post.UserId = userId;
             _context.Add(post);
             await _context.SaveChangesAsync();
+
+            var topic = await _context.Topics
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.Id == post.TopId);
+
+            if (topic?.User?.EmailConfirmed == true &&
+                !string.IsNullOrWhiteSpace(topic.User.Email) &&
+                topic.UserId != post.UserId)
+            {
+                var subject = $"Nouveau message dans: {topic.Title}";
+                var html = $""" 
+                            <p>Un nouveau message a été ajouté dans votre sujet.</p> 
+                            <p><strong>{topic.Title}</strong></p> 
+                            <p>Connectez-vous à BaseLab pour consulter la réponse.</p> 
+                            """;
+
+                try
+                {
+                    await _emailSender.SendAsync(topic.User.Email, subject, html);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Erreur lors de l'envoi de la notification.");
+                }
+            }
 
             return ServiceResult<Post>.Success(post);
         }
