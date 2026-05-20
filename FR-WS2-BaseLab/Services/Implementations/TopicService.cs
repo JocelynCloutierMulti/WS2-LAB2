@@ -82,6 +82,8 @@ public class TopicService : ITopicService
         var topics = await _context.Topics
             .AsNoTracking()
             .Include(t => t.User)
+             .Include(t => t.Posts)
+                .ThenInclude(p => p.User)
             .Where(t => t.CatId == categoryId)
             .OrderByDescending(t => t.Date)
             .ToListAsync();
@@ -179,6 +181,5 @@ public class TopicService : ITopicService
             return ServiceResult<Topic>.Failure("Le sujet n'a pas pu être modifié.");
         }
     }
-
 }
 

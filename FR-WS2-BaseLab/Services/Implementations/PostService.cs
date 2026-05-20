@@ -110,6 +110,10 @@ public class PostService : IPostService
                 .Where(p => p.TopId == topicId)
                 .OrderBy(p => p.Date)
                 .ToListAsync();
+
+            var sujet = await _context.Topics.Include(s => s.User).FirstOrDefaultAsync(s => s.Id == topicId);
+            sujet.Views++;
+            await _context.SaveChangesAsync();
             return ServiceResult<List<Post>>.Success(posts);
 
         }

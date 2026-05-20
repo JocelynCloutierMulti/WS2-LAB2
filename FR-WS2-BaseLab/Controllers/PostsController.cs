@@ -26,7 +26,7 @@ namespace FR_WS2_BaseLab.Controllers
         {
             if (id is null) return NotFound();
             @ViewData["TopicId"] = id;    
-            
+
             var result = await _postService.GetByTopicIdAsync(id.Value);
 
             if (!result.Succeeded)
@@ -96,7 +96,7 @@ namespace FR_WS2_BaseLab.Controllers
                 return NotFound();
             }
 
-            var result = await _postService.GetDetailsAsync(id.Value);
+            var result = await _postService.GetForEditAsync(id.Value);
             if (!result.Succeeded) return NotFound();
 
             return View(result.Value);
@@ -108,7 +108,7 @@ namespace FR_WS2_BaseLab.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Edit(int id, [Bind("Texte")] Post post)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Texte,Inactive,TopId")] Post post)
         {
             if (id != post.Id) return NotFound();
 
