@@ -122,7 +122,7 @@ namespace FR_WS2_BaseLab.Controllers
             if (ModelState.IsValid)
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var result = await _postService.UpdateAsync(id, post, userId, User.IsInRole("ADMINISTRATOR"));
+                var result = await _postService.UpdateAsync(id, post, userId, User.IsInRole("ADMIN"));
 
                 if (result.Succeeded)
                 {
@@ -160,7 +160,7 @@ namespace FR_WS2_BaseLab.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var result = await _postService.DeleteAsync(id, userId, User.IsInRole("ADMINISTRATOR"));
+            var result = await _postService.DeleteAsync(id, userId, User.IsInRole("ADMIN"));
 
             if (!result.Succeeded)
             {

@@ -108,7 +108,7 @@ public class TopicsController : Controller
         if (ModelState.IsValid)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var result = await _topicService.UpdateAsync(id, topic, userId, User.IsInRole("ADMINISTRATOR"));
+            var result = await _topicService.UpdateAsync(id, topic, userId, User.IsInRole("ADMIN"));
 
             if (result.Succeeded)
             {
@@ -140,7 +140,7 @@ public class TopicsController : Controller
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var result = await _topicService.DeleteAsync(id, userId, User.IsInRole("ADMINISTRATOR"));
+        var result = await _topicService.DeleteAsync(id, userId, User.IsInRole("ADMIN"));
 
         if (!result.Succeeded)
         {

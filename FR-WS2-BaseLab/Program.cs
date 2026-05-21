@@ -11,7 +11,7 @@ namespace FR_WS2_BaseLab;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -26,8 +26,11 @@ public class Program
         
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-        builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-            .AddEntityFrameworkStores<ApplicationDbContext>();
+        builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultUI()
+            .AddDefaultTokenProviders();
+        
         builder.Services.AddControllersWithViews();
         builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
@@ -40,6 +43,8 @@ public class Program
         builder.Services.AddScoped<IForumEmailService, ForumEmailService>();
 
         var app = builder.Build();
+        
+        await DbInitializer.InitializeAsync(app.Services, app.Configuration);
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())

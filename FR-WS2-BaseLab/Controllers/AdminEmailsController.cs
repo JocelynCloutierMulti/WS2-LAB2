@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace FR_WS2_BaseLab.Controllers;
 
-[Authorize(Roles = "ADMINISTRATOR")]
+[Authorize(Roles = "Admin")]
 public class AdminEmailsController : Controller
 {
     private readonly UserManager<IdentityUser> _userManager;
@@ -50,12 +50,12 @@ public class AdminEmailsController : Controller
         {
             var htmlMessage = $"<p>{System.Net.WebUtility.HtmlEncode(model.Message).Replace("\n", "<br />")}</p>";
             await _emailSender.SendEmailAsync(user.Email, model.Subject, htmlMessage);
-            TempData["SuccessMessage"] = "Le courriel a ete envoye.";
+            TempData["SuccessMessage"] = "Le courriel a ete envoyé.";
             return RedirectToAction(nameof(Index));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Le courriel admin vers l'utilisateur {UserId} n'a pas pu etre envoye.", model.RecipientId);
+            _logger.LogError(ex, "Le courriel admin vers l'utilisateur {UserId} n'a pas pu etre envoyé.", model.RecipientId);
             ModelState.AddModelError(string.Empty, "Le courriel n'a pas pu etre envoye. Verifiez la configuration SMTP.");
             return View(BuildViewModel(model));
         }
