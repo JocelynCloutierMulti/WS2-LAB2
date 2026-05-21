@@ -7,37 +7,38 @@
     {
         <div class="card" style="width: 25rem;">
             <div class="card-body">
-                <div>
-                <h5 class="card-title">@item.Name</h5>
-                <h6 class="card-subtitle mb-2 text-body-secondary">Nombre de sujets : @item.Topics.Count</h6>
-                <p class="card-text">@item.Description</p>
-                @if (item.CategoryImages != null && item.CategoryImages.Any(i => i.AfficherImage))
-                {
-                    <img src="~/images/img_categories/@item.CategoryImages.FirstOrDefault(i => i.AfficherImage)?.FileName"
-                        style="max-width:200px; max-height:200px;" />
-                }  <ul> 
-                @foreach(var t in item.Topics)
-                {
-                    <li>
-                        <a asp-controller="Topics" asp-action="Details" asp-route-id="@t.Id">@t.Title</a>
-                    </li>
-                }
-                </ul>
+                <div id="homeCategory">
+                    <h5 class="card-title">@item.Name</h5>
+                    @if (item.CategoryImages != null && item.CategoryImages.Any(i => i.AfficherImage)){
+                        var image = item.CategoryImages.FirstOrDefault(i => i.AfficherImage);
+                        if (image != null){
+                            <img src="~/images/img_categories/@image.FileName" id="homeCategoryImage" alt="@image.AltText"/>}} 
+                    <p class="card-text">@item.Description</p>
+                    <ul> 
+                        <div class="homeSujetsCat">
+                            <h6>Nombre de sujets : @item.Topics.Count</h6>
+                            @foreach(var t in item.Topics)
+                            {
+                                <li>
+                                    <a asp-controller="Topics" asp-action="Details" asp-route-id="@t.Id">@t.Title</a>
+                                </li>
+                            }
+                        </div>
+                    </ul>
                 </div>
                  @if(item.Topics.Any()){
-                    <div style="display: flex; justify-content: space-around; align-item:flex-end;">
-                        <a asp-controller="Topics" 
-                            asp-action="AfficherSujets" 
-                            asp-route-id="@item.Id" class="btn btn-success">Sujets</a>
+                    <div class="blocBtnHome">
+                        <a asp-controller="Topics" asp-action="AfficherSujets" 
+                            asp-route-id="@item.Id" class="btn btn-success">Voir les sujets &rarr;</a>
                     </div>
                 }
                 else{
-                    <p>Aucun sujet</p>
-                    <div style="display: flex; justify-content: space-around; align-item:flex-end;">
+                    <h6 id="h6-homeCreateSujet">Soyez le premier à créer un sujet !</h6>
+                    <div class="blocBtnHome">
                         <a class="btn btn-primary" 
                             asp-action="Create" 
                             asp-controller="Topics"
-                            asp-route-id="@item.Id">Créer un sujet</a>
+                            asp-route-id="@item.Id">Créer un sujet &rarr;</a>
                     </div>
                 }
             </div>

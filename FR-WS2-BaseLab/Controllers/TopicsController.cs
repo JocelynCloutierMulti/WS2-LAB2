@@ -33,11 +33,19 @@ public class TopicsController(
         if (id is null) return NotFound();
         ViewData["CategoryId"] = id;
         var result = await _topicService.GetByCategoryIdAsync(id.Value);
-        if (!result.Succeeded)
-        {
+        if (!result.Succeeded){
             TempData["ErrorMessage"] = result.ErrorMessage;
-            return View(new List<Topic>());
-        }
+            return View(new List<Topic>());}
+        else if (result.Value is not null){
+            var messages = result.Value.Select(t => new{
+                topicId = t.Id,
+                posts = t.Posts.OrderByDescending(p => p.Date).Take(3).Select(p => new {
+                    id = p.Id,
+                    texte = p.Texte,
+                    date = p.Date.ToShortDateString(),
+                    userName = p.User != null ? p.User.UserName : "Anonyme"
+                }).ToList()}).ToDictionary(t => t.topicId, t => t.posts);
+            ViewData["Messages"] = messages;}
         return View(result.Value);
     }
 

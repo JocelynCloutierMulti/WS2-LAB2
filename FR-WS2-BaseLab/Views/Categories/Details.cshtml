@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Details";
     if(!User.IsInRole("Admin")) return;
+    var imageActive = Model.CategoryImages?.FirstOrDefault(i => i.AfficherImage);
 }
 
 <h1 id="h1-detailsCat"><span id="categoryName">Détails : </span> catégorie</h1>
@@ -21,7 +22,7 @@
                 <h4>Images</h4>
                 <div id="groupeImages">
                     @foreach(var imag in Model.CategoryImages ?? [])
-                    {<img src="~/images/img_categories/@imag.FileName" class="imageDetails" style="max-width:100px; max-height:100px;" />}
+                    {<img src="~/images/img_categories/@imag.FileName" class="imageDetails" style="max-width:100px; max-height:100px;" alt="@imag.AltText" />}
                 </div>
             }
             else{<p>Aucune image pour cette catégorie.</p>}
@@ -29,17 +30,16 @@
         <div id="categoryImage">
             @if(Model.CategoryImages != null && Model.CategoryImages.Any())
             {
-                var image = Model.CategoryImages.FirstOrDefault(i => i.AfficherImage);
-                if (image?.FileName != null)
+                if (imageActive?.FileName != null)
                 {
                     <h4>Image principale</h4> 
-                    <img src="~/images/img_categories/@image.FileName"style="max-width:200px; max-height:200px;" />
-                    <p><b>Fichier d'origine :</b> @image.OriginalFileName</p>
-                    <p><b>Fichier actuel :</b><br /> @image.FileName</p>
-                    <p><b>Type de fichier :</b> @image.ContentType</p>
-                    <p><b>Texte descriptif :</b> @image.AltText</p>
-                    <p><b>Taille :</b> @image.SizeInBytes Bytes</p>
-                <p><b>Téléversée le :</b> @image.UploadedAtUtc.ToString("dd/MM/yyyy")</p>
+                    <img src="~/images/img_categories/@imageActive.FileName"style="max-width:200px; max-height:200px;" alt="@imageActive.AltText" />
+                    <p><b>Fichier d'origine :</b> @imageActive.OriginalFileName</p>
+                    <p><b>Fichier actuel :</b><br /> @imageActive.FileName</p>
+                    <p><b>Type de fichier :</b> @imageActive.ContentType</p>
+                    <p><b>Texte descriptif :</b> @imageActive.AltText</p>
+                    <p><b>Taille :</b> @imageActive.SizeInBytes Bytes</p>
+                    <p><b>Téléversée le :</b> @imageActive.UploadedAtUtc.ToString("dd/MM/yyyy")</p>
                 } else{<p>Aucune image principale définie.</p>}  
             }
         </div>

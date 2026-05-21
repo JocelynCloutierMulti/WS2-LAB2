@@ -93,3 +93,28 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (!uploadResult.success) {alert(uploadResult.message); return;}}
             window.location.href = "/Categories/Index";});}
 });
+
+/******************************************************************************
+ * GESTION DYNAMIQUE DES MESSAGES ASSOCIÉS AUX SUJETS (INDEX)
+ * ---------------------------------------------------------------------------
+ * Défile messages de chaque sujet dans tableau de l'index Topics.
+ * Index pour chaque sujet afin de suivre message affiché.
+ * Met à jour le contenu du message dans la page en fonction de l'index.
+ ******************************************************************************/
+let msgIndex = {};
+function changeMsg(id, direction) {
+    if (!msgIndex[id]) msgIndex[id] = 0;
+    let messages = window.msgData[id];
+    let max = messages.length;
+    msgIndex[id] = (msgIndex[id] + direction + max) % max;
+    let current = messages[msgIndex[id]];
+    document.getElementById("msg-content-" + id).innerHTML =
+        '<div class=\"msgCarouselTitle\">' +
+            '<span class=\"arrow\" onclick="changeMsg(' + id + ', -1)">◀</span>' +
+            '<h4><b>Message #' + current.id + '</b></h4>' +
+            '<span class=\"arrow\" onclick="changeMsg(' + id + ', 1)">▶</span>' +
+        '</div>' +
+        "<p class=\"msgText\"><b>" + current.texte + "</b></p>" +
+        "<p><small><b>Publié le </b>" + current.date + "</small></p>" + 
+        "<p><small><b>Par </b>" + (current.userName || "Anonyme") + "</small></p>";
+}

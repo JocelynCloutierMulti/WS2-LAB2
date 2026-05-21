@@ -36,8 +36,12 @@ h2{
  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
  margin-top: 2rem;
 }
-a{
+a, .btn-lien{
   color:darkgreen;
+}
+
+nav a:hover, .btn-lien:hover{
+  color:yellowgreen;
 }
 
 .message{
@@ -48,6 +52,7 @@ a{
 
 .card{
   border: 4px groove green;
+  background-color: rgb(238, 240, 242);
 }
 
 li{
@@ -74,6 +79,11 @@ ul{
   margin:2rem auto;
 }
 
+p.card-text{
+  hyphens: auto;
+  overflow-wrap: break-all;
+  text-align: justify;
+}
 
 footer, .footer {
   background-color: rgb(41, 35, 78);
@@ -110,6 +120,7 @@ nav{
 .nav-item, .nav-link, .navbar-nav a, .btn-link.nav-link:focus{
     color: lightgray;
 }
+
 header li, .itemPartie{
   padding-top: 0.2rem;
    font-size: 1.1em;
@@ -135,6 +146,10 @@ a.nav-lien, .btn-lien{
 
 #lien-gestion, #lien-contact{
   color: linen;
+}
+
+#lien-gestion:hover, #lien-contact:hover{
+  color: gold;
 }
 
 .card-footer{
@@ -164,8 +179,10 @@ a.nav-lien, .btn-lien{
 }
 
 .td-long, .th-long{
-   max-width: 250px;
+   max-width: 300px;
    padding-right: 2em;
+   overflow-wrap: break-word;
+   hyphens: auto;
 }
 
 td{
@@ -321,10 +338,6 @@ td, th{
   color: black;
   padding: 0.45rem 0.75em 0.45rem 0.5em;
   border-radius: 5px;
-}
-
-.card{
-  word-break: break-all;
 }
 
 .blocXL{
@@ -662,4 +675,132 @@ margin: 1rem 0.5em;
 textarea{
   resize: none;
   overflow: auto;
+}
+
+.homeSujetsCat{
+  background-color: rgb(225, 233, 214);
+  border: 3px groove green;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border-radius: 5px;
+}
+
+#homeCategoryImage{
+  border: 3px solid black;
+  border-radius: 5px;
+  max-width:200px; max-height:200px; margin-bottom:1rem;
+}
+
+.homeSujetsCat h6{
+  font-size: 1.1em;
+  font-weight: bold;
+  margin: 0 0 0.25em;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+#homeCategory h5{
+  font-family: impact, haettenschweiler, 'arial narrow bold', sans-serif;
+  color: darkslateblue;
+  letter-spacing: 0.02em;
+  text-shadow: 0.25px 0.25px 0.25px black;
+  font-size: 1.3em;
+  margin: 1rem 0 1.5rem;
+}
+
+.blocBtnHome{
+  display: flex; 
+  justify-content: flex-start; 
+  align-items:flex-end;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.blocBtnHome .btn-success{
+  font-weight: bold;
+  background-color: darkgreen;
+}
+
+.blocBtnHome .btn-primary{
+  font-weight: bold;
+  background-color: navy;
+}
+
+#h6-homeCreateSujet{
+  font-family: 'Jokerman';
+  color: navy;
+  font-size: 1.2em;
+  text-shadow: 0.5px 0.5px 0.5px green;
+}
+
+.msgCarousel {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    max-width: 300px;
+}
+
+.msgContent {
+    flex: 1;
+    padding: 0.5rem 0.25em;
+}
+
+.msgContent hr{
+  margin: 0.5rem auto;
+}
+
+.msgCarouselTitle{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin:0 0.5em;
+}
+
+.msgContent h4 {
+    margin: 0.5rem auto 0;
+    font-size: 1.2em;
+    color: navy;
+    text-align: center;
+}
+
+.msgContent, 
+.msgTableSujet p {
+    hyphens: auto;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.msgTableSujet small > b {
+    color: navy;
+}
+
+.msgTableSujet small {
+  font-style: italic;
+    font-size: 1em;
+    color: navy;
+}
+
+.msgText{ 
+    position: relative;
+}
+
+.msgText::after {
+  content: "";
+  display: block;
+  margin: 5px auto 0.5rem;
+  border-bottom: 2px dotted navy;
+
+}
+
+.arrow {
+    cursor: pointer;
+    font-size: 16px;
+    user-select: none;
+    color: navy;
+}
+
+.arrow:hover {
+    color: blue;  
 }
