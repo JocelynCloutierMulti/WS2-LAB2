@@ -25,10 +25,13 @@ public class Program
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
         builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
         builder.Services.AddControllersWithViews();
 
         builder.Services.AddScoped<ITopicService, TopicService>();
+        builder.Services.AddScoped<ICategoriesService, CategoriesService>();
+        builder.Services.AddScoped<IPosts, PostsService>();
 
         var app = builder.Build();
 
