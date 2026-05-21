@@ -2,21 +2,44 @@
 @{
     ViewData["Title"] = "Home Page";
 }
-<a class="btn btn-success" asp-controller="Categories" asp-action="Create">Create Category</a>
 <div class="row justify-content-around">
     @foreach (var item in Model)
     {
-        <div class="card" style="width: 18rem;">
+        <div class="card" style="width: 25rem;">
             <div class="card-body">
+                <div>
                 <h5 class="card-title">@item.Name</h5>
-                <h6 class="card-subtitle mb-2 text-body-secondary">@item.Topics.Count</h6>
+                <h6 class="card-subtitle mb-2 text-body-secondary">Nombre de sujets : @item.Topics.Count</h6>
                 <p class="card-text">@item.Description</p>
-                <div>IMAGES</div>
+                @if (item.CategoryImages != null && item.CategoryImages.Any(i => i.AfficherImage))
+                {
+                    <img src="~/images/img_categories/@item.CategoryImages.FirstOrDefault(i => i.AfficherImage)?.FileName"
+                        style="max-width:200px; max-height:200px;" />
+                }  <ul> 
                 @foreach(var t in item.Topics)
                 {
-                    <a asp-controller="Topics" asp-action="Details" asp-route-id="@t.Id">@t.Title</a>
+                    <li>
+                        <a asp-controller="Topics" asp-action="Details" asp-route-id="@t.Id">@t.Title</a>
+                    </li>
                 }
-                <a asp-controller="Topics" asp-action="Index" asp-route-id="@item.Id" class="btn btn-secondary">Topics</a>
+                </ul>
+                </div>
+                 @if(item.Topics.Any()){
+                    <div style="display: flex; justify-content: space-around; align-item:flex-end;">
+                        <a asp-controller="Topics" 
+                            asp-action="AfficherSujets" 
+                            asp-route-id="@item.Id" class="btn btn-success">Sujets</a>
+                    </div>
+                }
+                else{
+                    <p>Aucun sujet</p>
+                    <div style="display: flex; justify-content: space-around; align-item:flex-end;">
+                        <a class="btn btn-primary" 
+                            asp-action="Create" 
+                            asp-controller="Topics"
+                            asp-route-id="@item.Id">Créer un sujet</a>
+                    </div>
+                }
             </div>
         </div>
     }

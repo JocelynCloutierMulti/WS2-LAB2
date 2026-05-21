@@ -4,7 +4,7 @@
     ViewData["Title"] = "Details";
 }
 
-<h1>Details</h1>
+<h1>Détails</h1>
 
 <div>
     <h4>Post</h4>
@@ -32,17 +32,32 @@
             @Html.DisplayNameFor(model => model.Top)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Top.Id)
+            @Html.DisplayFor(model => model.TopId)
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.User)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.User.Id)
+            @Html.DisplayFor(model => model.UserId)
         </dd>
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Edit" asp-route-id="@Model?.Id" asp-route-topicId="@(ViewData["TopicId"])">Edit</a> |
+    <div>
+        @if (ViewData["TopicId"] != null)
+        {
+             @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin")) 
+            {
+                 <a asp-action="Index" asp-route-id="@ViewData["TopicId"]">Back to List</a>
+            }
+            else{
+                <a asp-action="AfficherMessages" asp-route-id="@ViewData["TopicId"]">Back to List</a>
+            }
+        }
+        else
+        {
+            <a asp-controller="Home"asp-action="Index">Back to Home</a>
+        } 
+    </div>
 </div>

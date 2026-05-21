@@ -2,14 +2,20 @@
 
 @{
     ViewData["Title"] = "Index";
-    int cnt = 0;
+    if(!User.IsInRole("Admin")) return;
+}
+<h1>Sujets</h1>
+@if (ViewData["CategoryId"] != null)
+{
+    <p class="creer-p">
+        <a asp-action="Create"asp-route-id="@ViewData["CategoryId"]"class="creer-a">Créer un sujet</a>
+    </p>
 }
 
-<h1>Index</h1>
+<div class="backList">
+    <a asp-controller="Categories" asp-action="Index">Back to Categories</a>
+</div>
 
-<p>
-    <a asp-action="Create" asp-route-id="@ViewData["CategoryId"]">Create New</a>
-</p>
 <table class="table">
     <thead>
         <tr>
@@ -19,7 +25,7 @@
             <th>
                 @Html.DisplayNameFor(model => model.Title)
             </th>
-            <th>
+            <th class="th-long">
                 @Html.DisplayNameFor(model => model.Texte)
             </th>
             <th>
@@ -50,7 +56,7 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.Title)
                 </td>
-                <td>
+                <td class="td-long">
                     @Html.DisplayFor(modelItem => item.Texte)
                 </td>
                 <td>
@@ -60,30 +66,45 @@
                     @Html.DisplayFor(modelItem => item.Views)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Cat.Name)
+                    @Html.DisplayFor(modelItem => item.Cat!.Name)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.User.UserName)
+                    @Html.DisplayFor(modelItem => item.User!.UserName)
                 </td>
                 <td>
-                    @foreach (var p in item.Posts)
+                @if (!item.Posts.Any())
+                {
+                    <p class="text-muted">Aucun message</p>
+                }
+                else
+                {
+                    @foreach (var p in item.Posts.Take(3))
                     {
-                        if (cnt > 2)
-                            break;
-                        <div class="card text-center text-black mt-1">
-                            <div>@p.Date.ToShortDateString()</div>
-                            <div>@p.User.UserName: @p.Texte</div>
+                        if(p == null){<p>"Aucun message"</p>}
+
+                        <div class="msgTableSujet">
+                            <p><b>@p?.Texte</b></p>
+                            <p><i><small>Publié le @p?.Date.ToShortDateString()</small></i></p>
+                            <p><i><small>Par @p?.User?.UserName</small></i></p>
                         </div>
-
-                        cnt++;
                     }
-
-                    <div><a asp-controller="Posts" asp-action="Index" asp-route-id="@item.Id" class="btn btn-primary">Voir la Discussion!</a></div>
+                }
                 </td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a>
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    <div class="boutonsTable">
+                    <a class="details-a" 
+                        asp-action="Details"
+                        asp-route-id="@item.Id">Details</a>
+                    <a class="edit-a"  asp-action="Edit" 
+                        asp-route-id="@item.Id">Edit</a>
+                    <a class="delete-a"  asp-action="Delete" 
+                        asp-route-id="@item.Id">Delete</a>
+                     <a class="boutonsTable-vert" 
+                       asp-controller="Posts" 
+                       asp-action="index" 
+                       asp-route-id="@item.Id">Messages
+                    </a>
+                </div>
                 </td>
             </tr>
         }

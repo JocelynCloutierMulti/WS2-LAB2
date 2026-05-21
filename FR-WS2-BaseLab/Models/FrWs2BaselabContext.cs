@@ -29,14 +29,14 @@ public partial class FrWs2BaselabContext : DbContext
 
     public virtual DbSet<Category> Categories { get; set; }
 
-    public virtual DbSet<Image> Images { get; set; }
+    public virtual DbSet<CategoryImage> CategoryImages { get; set; }
 
     public virtual DbSet<Post> Posts { get; set; }
 
     public virtual DbSet<Topic> Topics { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:FR-WS2-BASELAB");
+        => optionsBuilder.UseSqlServer("Server=.\\SQLEXPRESS;Database=FR-WS2-BASELAB;Trusted_Connection=True;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -79,7 +79,7 @@ public partial class FrWs2BaselabContext : DbContext
                     {
                         j.HasKey("UserId", "RoleId");
                         j.ToTable("AspNetUserRoles");
-                        j.HasIndex(new[] { "RoleId" }, "IX_AspNetUserRoles_RoleId");
+                        j.HasIndex(["RoleId"], "IX_AspNetUserRoles_RoleId");
                     });
         });
 
@@ -93,22 +93,17 @@ public partial class FrWs2BaselabContext : DbContext
         modelBuilder.Entity<AspNetUserLogin>(entity =>
         {
             entity.HasKey(e => new { e.LoginProvider, e.ProviderKey });
-
             entity.HasIndex(e => e.UserId, "IX_AspNetUserLogins_UserId");
-
             entity.Property(e => e.LoginProvider).HasMaxLength(128);
             entity.Property(e => e.ProviderKey).HasMaxLength(128);
-
             entity.HasOne(d => d.User).WithMany(p => p.AspNetUserLogins).HasForeignKey(d => d.UserId);
         });
 
         modelBuilder.Entity<AspNetUserToken>(entity =>
         {
             entity.HasKey(e => new { e.UserId, e.LoginProvider, e.Name });
-
             entity.Property(e => e.LoginProvider).HasMaxLength(128);
             entity.Property(e => e.Name).HasMaxLength(128);
-
             entity.HasOne(d => d.User).WithMany(p => p.AspNetUserTokens).HasForeignKey(d => d.UserId);
         });
 
@@ -116,22 +111,21 @@ public partial class FrWs2BaselabContext : DbContext
         {
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.Description).HasMaxLength(250);
-            entity.Property(e => e.Image).HasMaxLength(250);
             entity.Property(e => e.Inactive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<Image>(entity =>
+        modelBuilder.Entity<CategoryImage>(entity =>
         {
-            entity.HasKey(e => e.FileName);
-
-            entity.Property(e => e.FileName).HasMaxLength(256);
-            entity.Property(e => e.CatId).HasColumnName("CatID");
-
-            entity.HasOne(d => d.Cat).WithMany(p => p.Images)
-                .HasForeignKey(d => d.CatId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Images_Categories");
+            entity.HasIndex(e => e.CategoryId, "IX_CategoryImages_CategoryId");
+            entity.HasIndex(e => e.CategoryId, "UX_CategoryImages_AfficherImage")
+                .IsUnique()
+                .HasFilter("([AfficherImage]=(1))");
+            entity.Property(e => e.AltText).HasMaxLength(120);
+            entity.Property(e => e.ContentType).HasMaxLength(100);
+            entity.Property(e => e.FileName).HasMaxLength(160);
+            entity.Property(e => e.OriginalFileName).HasMaxLength(255);
+            entity.Property(e => e.UploadedAtUtc).HasDefaultValueSql("(sysutcdatetime())");
         });
 
         modelBuilder.Entity<Post>(entity =>

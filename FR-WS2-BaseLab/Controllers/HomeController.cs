@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using FR_WS2_BaseLab.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,8 +17,17 @@ namespace FR_WS2_BaseLab.Controllers
 
         public IActionResult Index()
         {
-            var categories = _frWs2Context.Categories.Include(t=>t.Topics);
+            var categories = _frWs2Context.Categories
+                .AsNoTracking()
+                .Where(c => !c.Inactive)
+                .Include(t => t.Topics)
+                .Include(i => i.CategoryImages);
             return View(categories);
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
         }
     }
 }
