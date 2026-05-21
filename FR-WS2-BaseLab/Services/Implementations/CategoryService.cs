@@ -1,3 +1,4 @@
+using System.Drawing;
 using FR_WS2_BaseLab.Models;
 using FR_WS2_BaseLab.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -8,17 +9,21 @@ public class CategoryService : ICategoryService
 {
     private readonly FrWs2BaselabContext _context;
     private readonly ILogger<CategoryService> _logger;
+    private readonly ICategoryImageService _categoryImageService;
 
-    public CategoryService(FrWs2BaselabContext context, ILogger<CategoryService> logger)
+    public CategoryService(FrWs2BaselabContext context, ILogger<CategoryService> logger, ICategoryImageService categoryImageService)
     {
         _context = context;
         _logger = logger;
+        _categoryImageService = categoryImageService;
     }
 
      public async Task<ServiceResult<List<Category>>> GetAllAsync()
     {
         try{
-            var cats = await _context.Categories.ToListAsync();
+            var cats = await _context.Categories
+                .Include(c => c.CategoryImages)
+                .ToListAsync();
             return ServiceResult<List<Category>>.Success(cats);
         }catch (Exception ex){
             _logger.LogError(ex, "Erreur lors du chargement des catégories.");
@@ -29,7 +34,9 @@ public class CategoryService : ICategoryService
     public async Task<ServiceResult<Category>> GetByIdAsync(int id)
     {
         try{
-            var cat = await _context.Categories.FirstOrDefaultAsync(t => t.Id == id);
+            var cat = await _context.Categories
+                .Include(c => c.CategoryImages)
+                .FirstOrDefaultAsync(t => t.Id == id);
             if (cat is null) return ServiceResult<Category>.Failure("La catégorie est introuvable.");
             return ServiceResult<Category>.Success(cat);
         }catch (Exception ex){
@@ -38,18 +45,10 @@ public class CategoryService : ICategoryService
         }
     }
 
-    public async Task<ServiceResult<Category>> CreateAsync(Category category, IFormFile? imageFile)
+    public async Task<ServiceResult<Category>> CreateAsync(Category category)
     {
-        string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(),"wwwroot/images/categories");
-        if (!Directory.Exists(uploadsFolder))Directory.CreateDirectory(uploadsFolder);
-        if (imageFile != null && imageFile.Length > 0)
-        {
-            string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(imageFile.FileName);
-            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-            using var stream = new FileStream(filePath, FileMode.Create);
-            await imageFile.CopyToAsync(stream);
-            category.Image = uniqueFileName;
-        }
+        if (category.Description.Length > 250)
+            return ServiceResult<Category>.Failure("La description ne doit pas dépasser 250 caractères.");
         try{
             category.Inactive = false;
             _context.Categories.Add(category);
@@ -61,36 +60,31 @@ public class CategoryService : ICategoryService
         }
     }
 
-    public async Task<ServiceResult<Category>> UpdateAsync(int id, Category categorie, IFormFile? imageFile)
+    public async Task<ServiceResult<Category>> UpdateAsync(int id, Category categorie)
     {
         if (id != categorie.Id) return ServiceResult<Category>.Failure("L'identifiant reçu est invalide.");
-        var existingCategory = await _context.Categories.FindAsync(id);
+        var existingCategory = await _context.Categories
+            .Include(c => c.CategoryImages)
+            .FirstOrDefaultAsync(c => c.Id == id);
         if (existingCategory is null) return ServiceResult<Category>.Failure("La catégorie est introuvable.");
+        if (categorie.Description.Length > 250)
+            return ServiceResult<Category>.Failure("La description ne doit pas dépasser 250 caractères.");
         try{
             existingCategory.Description = categorie.Description;
             existingCategory.Name = categorie.Name;
             existingCategory.Inactive = categorie.Inactive;
-            if (imageFile != null && imageFile.Length > 0)
-            {
-                string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(),"wwwroot/images/categories");
-                if (!Directory.Exists(uploadsFolder))Directory.CreateDirectory(uploadsFolder);
-                string uniqueFileName = Guid.NewGuid() + "_" + Path.GetFileName(imageFile.FileName);
-                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await imageFile.CopyToAsync(stream);
-                existingCategory.Image = uniqueFileName;
-            }
             await _context.SaveChangesAsync();
             return ServiceResult<Category>.Success(existingCategory);
-            }catch (DbUpdateException ex){
+        }catch (DbUpdateException ex){
                 _logger.LogError(ex, "Erreur BD lors de la modification de la catégorie {CategoryId}.", id);
-                return ServiceResult<Category>.Failure("La catégorie n'a pas pu être modifiée.");
-            }
+                return ServiceResult<Category>.Failure("La catégorie n'a pas pu être modifiée.");}
     }
 
     public async Task<ServiceResult<Category>> DeleteAsync(int id)
     {
-        var cat = await _context.Categories.FindAsync(id);
+        var cat = await _context.Categories
+            .Include(c => c.CategoryImages)
+            .FirstOrDefaultAsync(c => c.Id == id);
         if (cat is null) return ServiceResult<Category>.Failure("La catégorie est introuvable.");
         try{
             _context.Categories.Remove(cat);

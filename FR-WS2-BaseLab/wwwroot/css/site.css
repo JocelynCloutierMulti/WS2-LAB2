@@ -388,3 +388,278 @@ form.formContact{
     padding: 0;
   }
 }
+
+#blocGestionImages{
+  border-left: 5px groove goldenrod;
+    padding:1rem;
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+     gap: 1rem;
+}
+
+#blocGestionImages label{
+color: rgb(245, 233, 222);
+padding: 1.5rem 0 0.5rem;
+font-size: 1.1em;
+border-top: 5px dotted gold;
+ width: 100%;
+  text-align: center; 
+}
+
+
+#blocUploadImage label{
+  width: 100%;
+  border-top: none;
+  padding-top: 0.5rem;
+   color: orange;
+}
+
+#blocGestionImages input[type="file"]{
+  background-color: wheat;
+  font-size: 0.9em;
+  margin-bottom: 0.75rem;
+   border: 4px groove orange;
+}
+
+#blocUploadImage{
+ text-align: center; 
+}
+
+#blocUploadImage input{
+  border: 4px groove blue;
+}
+
+#blocChangerImage{
+ text-align: center;
+ padding-bottom: 1.5rem;
+}
+
+#blocChangerImage select{
+ border: 4px groove yellowgreen;
+}
+
+#blocChangerImage label{
+   color: yellowgreen;
+}
+
+#btnUploadImage{
+  background-color: rgb(254, 183, 53);
+  border: 3px solid rgb(255, 140, 0);
+  color: black;
+  padding: 0.25rem 1em;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
+  border-radius: 10px;
+}
+
+#btnUploadImage:hover{
+  background-color: rgb(255, 221, 0);
+  border-color: gold;
+}
+
+#blocSupprimerImage{
+ padding-bottom: 0.5rem;
+}
+
+#blocSupprimerImage select{
+  border: 4px groove red;
+}
+
+#blocSupprimerImage label{
+  color: red;
+}
+
+.boutonEdit{
+  background-color: gold;
+  color: black;
+  border: 4px groove black;
+  padding: 0.5rem 2em;
+  font-weight: bold;
+  border-radius: 15px;
+  font-size: 2em;
+  margin: 1rem auto 0;
+}
+
+.boutonEdit:hover{
+  background-color: rgb(1, 1, 67);
+  color: gold;
+  border: 4px groove gold;
+  padding: 0.5rem 2em;
+  font-weight: bold;
+  border-radius: 15px;
+  font-size: 2em;
+}
+
+#formEditTop{
+  border: 5px groove darkslateblue;
+  background-color: rgb(221, 213, 213);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+}
+
+#blocImgEdit{
+  border: 5px groove darkslateblue;
+  padding: 2rem 3rem;
+  background-color: rgb(221, 213, 213);
+  flex:2;
+}
+
+#blocImgEditInside{
+     margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: rgb(28, 0, 128);
+    border: 5px groove goldenrod;
+}
+
+#blocFormEdit{
+  display: flex;
+  flex-direction: row;
+   justify-content: space-between;
+   flex-wrap: wrap;
+    gap: 1rem;
+
+}
+
+#txtAreaEdit{
+  height: 25vh;
+  max-height: 25vh;
+}
+
+#blocImgEdit p{
+  font: normal 1rem 'baskerville old face', serif;
+ text-align: left;
+}
+
+#infosImageActive{
+display: flex;
+flex-direction: column;
+margin: 1rem 0.5em;
+}
+
+#formEditCat h3{
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+#formEditCat label{
+  margin-bottom: 0.5rem;
+}
+
+#blocImagePreview{
+  padding: 1rem;
+  background-color: lightyellow;
+  flex: 1.5;
+  margin: 0 auto;
+  text-align: center;
+}
+
+#blocImagePreview label, #blocImagePreview img{
+  text-align: center;
+  margin: 0.5rem auto 0;
+  font-size: 1.1em;
+  padding: 0;
+}
+
+#blocCatDetails{
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+#h1-detailsCat{
+  border-bottom: 3px groove black;
+  padding-bottom: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+#categoryName{
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
+#categoryImage{
+  flex:1;
+      background-color: rgb(221, 213, 213);
+    border: 4px groove darkslateblue;
+    padding: 2rem 3rem;
+     display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#categoryDetails{
+  flex:1;
+  padding-right: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background-color: rgb(221, 213, 213);
+  border: 4px groove darkslateblue;
+  padding: 2rem 3rem;
+}
+
+#groupeImages{
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+}
+
+#categoryImage p{
+  padding: 0;
+  margin: 0;
+}
+
+#detailsCategoryMain img{
+  border: 3px solid  black;
+  border-radius: 5px;
+}
+
+#detailsCategoryMain h4{
+  border-bottom: 3px groove darkslateblue;
+  padding-bottom: 0.5rem;
+  color: darkslateblue;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
+#actionsDetails a{
+  padding: 0.5rem 1em;
+  border-radius: 5px;
+  color: aliceblue;
+  text-decoration: none;
+  text-align: center;
+  font-weight: bold;
+  background-color: lightsteelblue;
+  border: 3px solid black;
+  color: black;
+}
+
+#actionsDetails a:hover{
+  background-color: yellowgreen;
+}
+
+#actionsDetails{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  margin: 2rem auto 1rem;
+  width: 50%;
+}
+
+#actionsDetails .edit-a{
+  background-color: gold;
+}
+
+textarea{
+  resize: none;
+  overflow: auto;
+}

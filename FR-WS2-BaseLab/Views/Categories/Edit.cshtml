@@ -1,66 +1,105 @@
-﻿@model FR_WS2_BaseLab.Models.Category
+﻿@using System.Drawing
+@model FR_WS2_BaseLab.Models.Category
 
 @{
     ViewData["Title"] = "Edit";
     if(!User.IsInRole("Admin")) return;
+    var imageActive = Model.CategoryImages?.FirstOrDefault(i => i.AfficherImage);
 }
-
 <h1>Modifier une catégorie</h1>
 <hr />
 <div class="row">
-    <div class="col-lg-4 colonne">
-        <form asp-action="Edit" enctype="multipart/form-data">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Inactive" /> @Html.DisplayNameFor(model => model.Inactive)
-                </label>
-            </div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            @if (!string.IsNullOrEmpty(Model.Image))
-            {
-                <div class="form-group">
-                    <label>Image actuelle</label><br />
-                    <img id="imagePreview"
-                        src="~/images/categories/@Model.Image"
-                        class="img-thumbnail mb-2"
-                        style="max-width:200px" />
+    <div class="colonne">
+        <form asp-action="Edit" id="formEditCat" enctype="multipart/form-data">
+            <div id="blocFormEdit">
+                <div id="formEditTop">
+                    <h3>Informations</h3>
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" id="categoryId" value="@Model.Id" />
+                    <div class="form-group form-check">
+                        <label class="form-check-label">
+                            <input class="form-check-input" asp-for="Inactive" /> 
+                            @Html.DisplayNameFor(model => model.Inactive)
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Name" class="control-label">Nom</label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Description" class="control-label">Description</label>
+                        <textarea asp-for="Description" id="txtAreaEdit" class="form-control"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
                 </div>
-            }
-            else
-            {
-                <img id="imagePreview"
-                    class="img-thumbnail mb-2"
-                    style="max-width:200px; display:none;" />
-            }
-            <div class="form-group">
-                <label>Changer l’image</label>
-                <input type="file"
-                    id="imageFileInput"
-                    name="imageFile"
-                    class="form-control"
-                    accept="image/*" />
+                <div id="blocImgEdit">
+                    <h3>Gestion des images</h3>
+                    <div id="blocImgEditInside">
+                        <div class="form-group" id="blocImagePreview">
+                            <label>Image principale</label><br />
+                            @if (imageActive != null)
+                            {   
+                                <img id="imagePreview"
+                                    src="@Url.Content("~/images/img_categories/" + imageActive.FileName)"
+                                    class="img-thumbnail mb-2"
+                                    alt="@imageActive.AltText"
+                                    style="max-width:200px; max-height:200px;" />
+                                <div id="infosImageActive">
+                                    <p><b>Fichier d'origine :</b> @imageActive.OriginalFileName</p>
+                                    <p><b>Fichier actuel :</b><br /> @imageActive.FileName</p>
+                                    <p><b>Type de fichier :</b> @imageActive.ContentType</p>
+                                    <p><b>Taille du fichier :</b> @imageActive.SizeInBytes Bytes</p>
+                                    <p><b>Texte descriptif :</b> @imageActive.AltText</p>
+                                    <p><b>Téléversée le :</b> @imageActive.UploadedAtUtc.ToString("dd/MM/yyyy")</p>
+                                </div>
+                            }else{
+                                <img id="imagePreview"
+                                    class="img-thumbnail mb-2"
+                                    alt="Aucune image"
+                                    style="max-width:200px; max-height:200px; display:none;" />
+                            }
+                        </div>
+                        <div id="blocGestionImages">
+                            <div class="form-group" id="blocUploadImage">
+                                <label>Ajouter une image</label>
+                                <input type="file" id="imageFileInput" class="form-control" accept="image/*" />
+                                <button type="button" id="btnUploadImage" class="btn btn-primary">Sauvegarder l'image</button>
+                            </div>
+                            <div class="form-group" id="blocChangerImage">
+                                <label>Changer l'image principale</label>
+                                <select name="imagePrincipaleId" id="imagePrincipaleId" class="form-control">
+                                    <option value="">-- Choisir une image --</option>
+                                    @foreach (var image in Model.CategoryImages ?? [])
+                                    {
+                                        <option value="@image.Id"
+                                            selected="@(image.AfficherImage ? "selected" : null)"
+                                            data-url="@Url.Content("~/images/img_categories/" + image.FileName)">
+                                            @image.OriginalFileName
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group" id="blocSupprimerImage">
+                                <label>Supprimer une image</label>
+                                <select name="imageASupprimerId" id="imageASupprimerId" class="form-control">
+                                    <option value="">-- Choisir une image --</option>
+                                    @foreach (var image in Model.CategoryImages ?? [])
+                                    {
+                                        <option value="@image.Id">@image.OriginalFileName</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            <div class="form-group">
-                <input type="submit" value="Sauvegarder" class="btn btn-success" />
             </div>
+            <input type="submit" value="Confirmer les modifications" class="boutonEdit" />
         </form>
     </div>
 </div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+<div><a asp-action="Index">Back to List</a></div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

@@ -6,8 +6,7 @@
 }
 
 <h1>Catégories</h1>
-
-<p class="creer-p"><a asp-action="Create" class="creer-a">Créer une catégorie</a></p>
+<p class="creer-p"><a asp-action="CreateCategorie" class="creer-a">Créer une catégorie</a></p>
 <table class="table">
     <thead>
         <tr>
@@ -21,7 +20,7 @@
                 @Html.DisplayNameFor(model => model.Description)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Image)
+                Image
             </th>
             <th></th>
         </tr>
@@ -39,25 +38,21 @@
             <td class="td-long">
                 @Html.DisplayFor(modelItem => item.Description)
             </td>
-            <td>
-                @if (!string.IsNullOrEmpty(item.Image))
-                {
-                    <img src="~/images/categories/@item.Image"style="max-width:100px" />
-                }
-            </td>
+            @if (item.CategoryImages != null && item.CategoryImages.Any(i => i.AfficherImage)){
+                var image = item.CategoryImages.FirstOrDefault(i => i.AfficherImage);
+                if (image != null){
+                    <td>
+                        <img src="~/images/img_categories/@image.FileName" style="max-width:100px; max-height:100px;" />
+                    </td>}
+            }else{<td>Aucune image</td>}            
             <td>
                 <div class="boutonsTable">
                     <a class="details-a" asp-action="Details" asp-route-id="@item.Id">Details</a>
                     <a class="edit-a" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
                     <a class="delete-a" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                    <a class="boutonsTable-vert" 
-                        asp-controller="Topics" 
-                        asp-action="Index" 
-                        asp-route-id="@item.Id">Sujets
-                    </a>
+                    <a class="boutonsTable-vert" asp-controller="Topics" asp-action="Index" asp-route-id="@item.Id">Sujets</a>
                 </div>
             </td>
         </tr>
-    }
-    </tbody>
+    }</tbody>
 </table>

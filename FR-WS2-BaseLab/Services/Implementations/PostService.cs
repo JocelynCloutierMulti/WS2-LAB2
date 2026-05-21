@@ -63,8 +63,9 @@ public class PostService(FrWs2BaselabContext context, ILogger<PostService> logge
     /// <returns>Le résultat du service contenant le message créé.</returns>
     public async Task<ServiceResult<Post>> CreateAsync(Post Post, string? userId)
     {
-        if (string.IsNullOrWhiteSpace(userId)) 
+        if (string.IsNullOrWhiteSpace(userId))
             return ServiceResult<Post>.Failure("Vous devez être connecté.");
+        if (Post.Texte.Length > 250) return ServiceResult<Post>.Failure("Le texte ne doit pas dépasser 250 caractères.");
         try {
             Post.UserId = userId;
             Post.Date = DateTime.Now;
@@ -108,6 +109,7 @@ public class PostService(FrWs2BaselabContext context, ILogger<PostService> logge
         if (id != Post.Id) return ServiceResult<Post>.Failure("L'identifiant reçu est invalide.");
         var existingPost = await _context.Posts.FindAsync(id);
         if (existingPost is null) return ServiceResult<Post>.Failure("Le message est introuvable.");
+        if (Post.Texte.Length > 250) return ServiceResult<Post>.Failure("Le texte ne doit pas dépasser 250 caractères.");
         try {
             existingPost.Texte = Post.Texte;
             existingPost.Inactive = Post.Inactive;

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace FR_WS2_BaseLab.Models;
+﻿namespace FR_WS2_BaseLab.Models;
 
 public partial class Category
 {
@@ -13,9 +10,7 @@ public partial class Category
 
     public string Description { get; set; } = null!;
 
-    public string? Image { get; set; }
+    public virtual ICollection<CategoryImage>? CategoryImages { get; set; } = [];
 
-    public virtual ICollection<Image> Images { get; set; } = new List<Image>();
-
-    public virtual ICollection<Topic> Topics { get; set; } = new List<Topic>();
+    public virtual ICollection<Topic> Topics { get; set; } = [];
 }

@@ -48,6 +48,7 @@ public class TopicService(
 
     public async Task<ServiceResult<Topic>> CreateAsync(Topic topic, string? userId)
     {
+        if (topic.Texte.Length > 250) return ServiceResult<Topic>.Failure("Le texte ne doit pas dépasser 250 caractères.");
         try {
             topic.UserId = userId;
             topic.Date = DateTime.Now;
@@ -79,6 +80,7 @@ public class TopicService(
         if (id != topic.Id) return ServiceResult<Topic>.Failure("L'identifiant reçu est invalide.");
         var existingTopic = await _context.Topics.FindAsync(id);
         if (existingTopic is null) return ServiceResult<Topic>.Failure("Le sujet est introuvable.");
+        if (topic.Texte.Length > 250) return ServiceResult<Topic>.Failure("Le texte ne doit pas dépasser 250 caractères.");
         try{
             existingTopic.Title = topic.Title;
             existingTopic.Texte = topic.Texte;

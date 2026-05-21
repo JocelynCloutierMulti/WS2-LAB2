@@ -2,7 +2,6 @@
 @{
     ViewData["Title"] = "Home Page";
 }
-
 <div class="row justify-content-around">
     @foreach (var item in Model)
     {
@@ -12,10 +11,10 @@
                 <h5 class="card-title">@item.Name</h5>
                 <h6 class="card-subtitle mb-2 text-body-secondary">Nombre de sujets : @item.Topics.Count</h6>
                 <p class="card-text">@item.Description</p>
-                @if (!string.IsNullOrEmpty(item.Image))
+                @if (item.CategoryImages != null && item.CategoryImages.Any(i => i.AfficherImage))
                 {
-                    <img src="~/images/categories/@item.Image"
-                        style="max-width:100px" />
+                    <img src="~/images/img_categories/@item.CategoryImages.FirstOrDefault(i => i.AfficherImage)?.FileName"
+                        style="max-width:200px; max-height:200px;" />
                 }  <ul> 
                 @foreach(var t in item.Topics)
                 {

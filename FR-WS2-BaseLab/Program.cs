@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace FR_WS2_BaseLab;
 
-public class Program
+public static class Program
 {
     public static void Main(string[] args)
     {
@@ -19,17 +19,14 @@ public class Program
 
         // Add services to the container.
         var connectionString = builder.Configuration.GetConnectionString("FR-WS2-BASELAB") ?? throw new InvalidOperationException("Connection string 'FR-WS2-BASELAB' not found.");
-        
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(connectionString));  
-        
+            options.UseSqlServer(connectionString));
         builder.Services.AddDbContext<FrWs2BaselabContext>(options =>
             options.UseSqlServer(connectionString));
-        
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
         // Identity configuration
-        builder.Services.AddDefaultIdentity<IdentityUser>(options => 
+        builder.Services.AddDefaultIdentity<IdentityUser>(options =>
             options.SignIn.RequireConfirmedAccount = true)
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -41,7 +38,8 @@ public class Program
         builder.Services
         .AddScoped<ICategoryService, CategoryService>()
         .AddScoped<IPostService, PostService>()
-        .AddScoped<ITopicService, TopicService>();
+        .AddScoped<ITopicService, TopicService>()
+        .AddScoped<ICategoryImageService, CategoryImageService>();
 
         // Configure services for email sending
         builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));

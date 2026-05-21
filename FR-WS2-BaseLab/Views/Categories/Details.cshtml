@@ -5,45 +5,47 @@
     if(!User.IsInRole("Admin")) return;
 }
 
-<h1>Details</h1>
-
-<div>
-    <h4>Categorie</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Inactive)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Inactive)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            
-        @if (!string.IsNullOrEmpty(Model.Image))
-        {
-            <img src="~/images/categories/@Model.Image"
-                style="max-width:100px" />
-        }
-        @* @Html.DisplayNameFor(model => model.Image) *@
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Image)
-        </dd>
-    </dl>
+<h1 id="h1-detailsCat"><span id="categoryName">Détails : </span> catégorie</h1>
+<div id="detailsCategoryMain"> 
+    <div id="blocCatDetails">
+        <div id="categoryDetails">
+            <h4>Informations</h4>
+            <h5><b>Nom : </b>@Model.Name</h5>
+            <h5><b>Statut : </b>
+                @if (Model.Inactive == true) {<span>Inactive</span>}
+                else{<span>Active</span>}
+            </h5>
+            <h5><b>Description :</b> @Model.Description</h5>
+            @if(Model.CategoryImages != null && Model.CategoryImages.Any())
+            {   
+                <h4>Images</h4>
+                <div id="groupeImages">
+                    @foreach(var imag in Model.CategoryImages ?? [])
+                    {<img src="~/images/img_categories/@imag.FileName" class="imageDetails" style="max-width:100px; max-height:100px;" />}
+                </div>
+            }
+            else{<p>Aucune image pour cette catégorie.</p>}
+        </div>   
+        <div id="categoryImage">
+            @if(Model.CategoryImages != null && Model.CategoryImages.Any())
+            {
+                var image = Model.CategoryImages.FirstOrDefault(i => i.AfficherImage);
+                if (image?.FileName != null)
+                {
+                    <h4>Image principale</h4> 
+                    <img src="~/images/img_categories/@image.FileName"style="max-width:200px; max-height:200px;" />
+                    <p><b>Fichier d'origine :</b> @image.OriginalFileName</p>
+                    <p><b>Fichier actuel :</b><br /> @image.FileName</p>
+                    <p><b>Type de fichier :</b> @image.ContentType</p>
+                    <p><b>Texte descriptif :</b> @image.AltText</p>
+                    <p><b>Taille :</b> @image.SizeInBytes Bytes</p>
+                <p><b>Téléversée le :</b> @image.UploadedAtUtc.ToString("dd/MM/yyyy")</p>
+                } else{<p>Aucune image principale définie.</p>}  
+            }
+        </div>
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+<div id="actionsDetails">
+    <a class="edit-a" asp-action="Edit" asp-route-id="@Model?.Id">Edit</a>
+    <a class="detail-a" asp-action="Index">Back to List</a>
+</div> 
