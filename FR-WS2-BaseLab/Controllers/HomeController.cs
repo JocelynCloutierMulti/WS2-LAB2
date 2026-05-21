@@ -18,7 +18,9 @@ namespace FR_WS2_BaseLab.Controllers
 
         public IActionResult Index()
         {
-            var categories = _frWs2Context.Categories.Include(t=>t.Topics);
+            var categories = _frWs2Context.Categories
+                .Include(c => c.Topics)
+                .Include(c => c.CategoryImages);
             return View(categories);
         }
     }

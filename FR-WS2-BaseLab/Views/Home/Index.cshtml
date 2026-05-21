@@ -1,24 +1,36 @@
-﻿@model IEnumerable<FR_WS2_BaseLab.Models.Category>
+@model IEnumerable<FR_WS2_BaseLab.Models.Category>
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Catégories";
 }
-<a class="btn btn-success" asp-controller="Categories" asp-action="Create">Create Category</a>
-<div class="row justify-content-around">
+
+<div class="d-flex align-items-center mb-1">
+    <h1 class="me-2 mb-0">Catégories</h1>
+    <span class="text-muted fs-4">🖼</span>
+</div>
+<p class="text-muted mb-4">Point de départ du forum. Chaque catégorie peut maintenant contenir une galerie d'images.</p>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
     @foreach (var item in Model)
     {
-        <div class="card" style="width: 18rem;">
-            <div class="card-body">
-                <h5 class="card-title">@item.Name</h5>
-                <h6 class="card-subtitle mb-2 text-body-secondary">@item.Topics.Count</h6>
-                <p class="card-text">@item.Description</p>
-                <div>IMAGES</div>
-                @foreach(var t in item.Topics)
+        var firstImage = item.CategoryImages.FirstOrDefault();
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                @if (firstImage != null)
                 {
-                    <a asp-controller="Topics" asp-action="Details" asp-route-id="@t.Id">@t.Title</a>
+                    <img src="/uploads/categories/@firstImage.CategoryId/@firstImage.FileName"
+                         class="card-img-top"
+                         alt="@(firstImage.AltText ?? item.Name)"
+                         style="height: 200px; object-fit: cover;" />
                 }
-                <a asp-controller="Topics" asp-action="Index" asp-route-id="@item.Id" class="btn btn-secondary">Topics</a>
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">@item.Name</h5>
+                    <p class="card-text text-muted">@item.Description</p>
+                </div>
+                <div class="card-footer bg-transparent border-top-0">
+                    <a asp-controller="Categories" asp-action="Details" asp-route-id="@item.Id" class="btn btn-link p-0 me-3">Détails</a>
+                    <a asp-controller="Topics" asp-action="Index" asp-route-id="@item.Id" class="btn btn-link p-0">Sujets</a>
+                </div>
             </div>
         </div>
     }
 </div>
-

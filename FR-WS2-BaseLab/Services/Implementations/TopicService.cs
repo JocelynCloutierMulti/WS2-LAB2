@@ -21,7 +21,7 @@ public class TopicService : ITopicService
     {
         if (string.IsNullOrWhiteSpace(userId))
         {
-            return ServiceResult<Topic>.Failure("Vous devez être connecté.");
+            return ServiceResult<Topic>.Fail("Vous devez être connecté.");
         }
 
         try
@@ -34,12 +34,12 @@ public class TopicService : ITopicService
             _context.Topics.Add(topic);
             await _context.SaveChangesAsync();
 
-            return ServiceResult<Topic>.Success(topic);
+            return ServiceResult<Topic>.Ok(topic);
         }
         catch (DbUpdateException ex)
         {
             _logger.LogError(ex, "Erreur BD lors de la création d'un sujet.");
-            return ServiceResult<Topic>.Failure("Le sujet n'a pas pu être créé.");
+            return ServiceResult<Topic>.Fail("Le sujet n'a pas pu être créé.");
         }
     }
 
@@ -50,21 +50,21 @@ public class TopicService : ITopicService
 
         if (topic is null)
         {
-            return ServiceResult<Topic>.Failure("Le sujet est introuvable.");
+            return ServiceResult<Topic>.Fail("Le sujet est introuvable.");
         }
 
         try
         {
             _context.Topics.Remove(topic);
             await _context.SaveChangesAsync();
-            return ServiceResult<Topic>.Success(topic);
+            return ServiceResult<Topic>.Ok(topic);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
                 "Erreur BD lors de la suppression du sujet {TopicId}.", id);
 
-            return ServiceResult<Topic>.Failure(
+            return ServiceResult<Topic>.Fail(
                 "Le sujet ne peut pas être supprimé. Il contient peut-être des messages.");
         }
     }
@@ -86,7 +86,7 @@ public class TopicService : ITopicService
             .OrderByDescending(t => t.Date)
             .ToListAsync();
 
-        return ServiceResult<List<Topic>>.Success(topics);
+        return ServiceResult<List<Topic>>.Ok(topics);
     }
     catch (Exception ex)
     {
@@ -94,7 +94,7 @@ public class TopicService : ITopicService
             "Erreur lors du chargement des sujets de la catégorie {CategoryId}.",
             categoryId);
 
-        return ServiceResult<List<Topic>>.Failure(
+        return ServiceResult<List<Topic>>.Fail(
             "Les sujets n'ont pas pu être chargés.");
     }
 }
@@ -112,17 +112,17 @@ public class TopicService : ITopicService
 
             if (topic is null)
             {
-                return ServiceResult<Topic>.Failure("Le sujet est introuvable.");
+                return ServiceResult<Topic>.Fail("Le sujet est introuvable.");
             }
 
-            return ServiceResult<Topic>.Success(topic);
+            return ServiceResult<Topic>.Ok(topic);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
                 "Erreur lors du chargement du sujet {TopicId}.", id);
 
-            return ServiceResult<Topic>.Failure(
+            return ServiceResult<Topic>.Fail(
                 "Le sujet n'a pas pu être chargé.");
         }
     }
@@ -137,14 +137,14 @@ public class TopicService : ITopicService
     {
         if (id != topic.Id)
         {
-            return ServiceResult<Topic>.Failure("L'identifiant reçu est invalide.");
+            return ServiceResult<Topic>.Fail("L'identifiant reçu est invalide.");
         }
 
         var existingTopic = await _context.Topics.FindAsync(id);
 
         if (existingTopic is null)
         {
-            return ServiceResult<Topic>.Failure("Le sujet est introuvable.");
+            return ServiceResult<Topic>.Fail("Le sujet est introuvable.");
         }
 
         try
@@ -154,13 +154,13 @@ public class TopicService : ITopicService
             existingTopic.Inactive = topic.Inactive;
 
             await _context.SaveChangesAsync();
-            return ServiceResult<Topic>.Success(topic);
+            return ServiceResult<Topic>.Ok(topic);
         }
         catch (DbUpdateException ex)
         {
             _logger.LogError(ex,
                 "Erreur BD lors de la modification du sujet {TopicId}.", id);
-            return ServiceResult<Topic>.Failure("Le sujet n'a pas pu être modifié.");
+            return ServiceResult<Topic>.Fail("Le sujet n'a pas pu être modifié.");
         }
     }
 

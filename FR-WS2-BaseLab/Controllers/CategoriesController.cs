@@ -36,6 +36,7 @@ public class CategoriesController : Controller
         }
 
         var category = await _context.Categories
+            .Include(c => c.CategoryImages)
             .FirstOrDefaultAsync(m => m.Id == id);
         if (category == null)
         {
