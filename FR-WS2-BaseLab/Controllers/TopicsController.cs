@@ -16,9 +16,11 @@ public class TopicsController : Controller
 {
 
     private readonly ITopicService _topicService;
-    public TopicsController(ITopicService topicService)
+    private readonly FrWs2BaselabContext _context;
+    public TopicsController(ITopicService topicService, FrWs2BaselabContext context)
     {
         _topicService = topicService;
+        _context = context;
     }
 
     // GET: Topics

@@ -1,30 +1,47 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using FR_WS2_BaseLab.Models;
+using FR_WS2_BaseLab.Services.Implementations;
+using FR_WS2_BaseLab.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using FR_WS2_BaseLab.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace FR_WS2_BaseLab.Controllers
 {
     public class PostsController : Controller
     {
+        private readonly IPosts _postService;
         private readonly FrWs2BaselabContext _context;
 
-        public PostsController(FrWs2BaselabContext context)
+        public PostsController(IPosts postService, FrWs2BaselabContext context)
         {
+            _postService = postService;
             _context = context;
         }
 
         // GET: Posts
         public async Task<IActionResult> Index(int? id)
         {
-            @ViewData["TopicId"] = id;           
-            var frWs2BaselabContext = _context.Posts.Where(p=>p.Id == id);
-            return View(await frWs2BaselabContext.ToListAsync());
+            if (id is null)
+            {
+                return NotFound();
+            }
+            ViewData["TopicId"] = id;
+            var result = await _postService.GetByTopicIdAsync(id.Value);
+            if (!result.Succeeded)
+            {
+                TempData["ErrorMessage"] = result.ErrorMessage;
+                return View(new List<Post>());
+            }
+            return View(result.Value);
+
+            //@ViewData["TopicId"] = id;           
+            //var frWs2BaselabContext = _context.Posts.Where(p=>p.Id == id);
+            //return View(await frWs2BaselabContext.ToListAsync());
         }
 
         // GET: Posts/Details/5
@@ -34,23 +51,19 @@ namespace FR_WS2_BaseLab.Controllers
             {
                 return NotFound();
             }
-
-            var post = await _context.Posts
-                .Include(p => p.Top)
-                .Include(p => p.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (post == null)
+            var result = await _postService.GetDetailsAsync(id.Value);
+            if (!result.Succeeded || result.Value is null)
             {
                 return NotFound();
             }
+            return View(result.Value);
 
-            return View(post);
         }
 
         // GET: Posts/Create
         public IActionResult Create(int? id)
         {
-            ViewData["TopicId"] = id;
+            ViewData["PostId"] = id;
             return View();
         }
 
@@ -61,16 +74,20 @@ namespace FR_WS2_BaseLab.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("TopId,UserId,Inactive,Texte,Date")] Post post)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                post.Date = DateTime.Now;
-                post.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                _context.Add(post);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index), new { id = post.TopId});
+                ViewData["TopicId"] = post.TopId;
+                return View(post);
             }
-            ViewData["TopId"] = post.Id;
-            return View(post);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _postService.CreateAsync(post, userId);
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, result.ErrorMessage!);
+                ViewData["TopicId"] = post.TopId;
+                return View(post);
+            }
+            return RedirectToAction(nameof(Index), new { id = post.TopId });
         }
 
         // GET: Posts/Edit/5
