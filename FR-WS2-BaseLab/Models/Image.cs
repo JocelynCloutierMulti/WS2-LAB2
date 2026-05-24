@@ -1,4 +1,6 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
+
 namespace FR_WS2_BaseLab.Models;
 
 public partial class Image

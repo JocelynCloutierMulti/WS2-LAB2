@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -63,7 +63,7 @@ namespace FR_WS2_BaseLab.Controllers
         {
             if (ModelState.IsValid)
             {
-                post.Date = DateTime.Now;
+                post.Date = DateOnly.FromDateTime(DateTime.Now);
                 post.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 _context.Add(post);
                 await _context.SaveChangesAsync();

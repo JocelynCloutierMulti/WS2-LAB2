@@ -6,10 +6,6 @@ namespace FR_WS2_BaseLab.Models;
 
 public partial class FrWs2BaselabContext : DbContext
 {
-    public FrWs2BaselabContext()
-    {
-    }
-
     public FrWs2BaselabContext(DbContextOptions<FrWs2BaselabContext> options)
         : base(options)
     {
@@ -29,14 +25,13 @@ public partial class FrWs2BaselabContext : DbContext
 
     public virtual DbSet<Category> Categories { get; set; }
 
+    public virtual DbSet<CategoryImage> CategoryImages { get; set; }
+
     public virtual DbSet<Image> Images { get; set; }
 
     public virtual DbSet<Post> Posts { get; set; }
 
     public virtual DbSet<Topic> Topics { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:FR-WS2-BASELAB");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -119,6 +114,19 @@ public partial class FrWs2BaselabContext : DbContext
             entity.Property(e => e.Image).HasMaxLength(250);
             entity.Property(e => e.Inactive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<CategoryImage>(entity =>
+        {
+            entity.HasIndex(e => e.CategoryId, "IX_CategoryImages_CategoryId");
+
+            entity.Property(e => e.AltText).HasMaxLength(120);
+            entity.Property(e => e.ContentType).HasMaxLength(100);
+            entity.Property(e => e.FileName).HasMaxLength(160);
+            entity.Property(e => e.OriginalFileName).HasMaxLength(255);
+            entity.Property(e => e.UploadedAtUtc).HasDefaultValueSql("(sysutcdatetime())");
+
+            entity.HasOne(d => d.Category).WithMany(p => p.CategoryImages).HasForeignKey(d => d.CategoryId);
         });
 
         modelBuilder.Entity<Image>(entity =>

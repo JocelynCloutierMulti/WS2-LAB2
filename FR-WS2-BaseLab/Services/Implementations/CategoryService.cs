@@ -1,6 +1,7 @@
 ﻿using FR_WS2_BaseLab.Models;
 using FR_WS2_BaseLab.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Exchange.WebServices.Data;
 
 namespace FR_WS2_BaseLab.Services.Implementations
 {

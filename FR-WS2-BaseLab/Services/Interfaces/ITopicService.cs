@@ -1,4 +1,5 @@
 ﻿using FR_WS2_BaseLab.Models;
+using Microsoft.Exchange.WebServices.Data;
 namespace FR_WS2_BaseLab.Services.Interfaces;
 public interface ITopicService
 {

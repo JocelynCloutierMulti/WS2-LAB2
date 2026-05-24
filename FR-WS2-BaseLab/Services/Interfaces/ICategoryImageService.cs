@@ -1,0 +1,16 @@
+﻿namespace FR_WS2_BaseLab.Services.Interfaces;
+using Microsoft.AspNetCore.Http;
+using FR_WS2_BaseLab.Models.ViewModels;
+public interface ICategoryImageService
+{
+	Task<IReadOnlyList<CategoryImageDto>> GetForCategoryAsync(int categoryId);
+
+	Task<ServiceResult<CategoryImageDto>> UploadAsync(
+		int categoryId,
+		IFormFile file,
+		string? altText);
+
+	Task<ServiceResult<bool>> DeleteAsync(int imageId);
+}
+
+

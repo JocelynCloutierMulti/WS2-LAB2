@@ -1,7 +1,8 @@
 ﻿using FR_WS2_BaseLab.Models;
 using FR_WS2_BaseLab.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
- 
+using Microsoft.Exchange.WebServices.Data;
+
 namespace FR_WS2_BaseLab.Services.Implementations
 {
     public class TopicService : ITopicService
@@ -25,18 +26,18 @@ namespace FR_WS2_BaseLab.Services.Implementations
                 var topics = await _context.Topics
                     .AsNoTracking()
                     .Include(t => t.User)
-                    .Where(t => t.CatId == categoryId)   // <-- filtre corrigé
+                    .Where(t => t.CatId == categoryId)   
                     .OrderByDescending(t => t.Date)
                     .ToListAsync();
  
-                return ServiceResult<List<Topic>>.Success(topics);
+                return ServiceResult<List<Topic>>.Ok(topics);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex,
                     "Erreur lors du chargement des sujets de la catégorie {CategoryId}.",
                     categoryId);
-                return ServiceResult<List<Topic>>.Failure(
+                return ServiceResult<List<Topic>>.Fail(
                     "Les sujets n'ont pas pu être chargés.");
             }
         }
@@ -54,17 +55,17 @@ namespace FR_WS2_BaseLab.Services.Implementations
  
                 if (topic is null)
                 {
-                    return ServiceResult<Topic>.Failure("Le sujet est introuvable.");
+                    return ServiceResult<Topic>.Fail("Le sujet est introuvable.");
                 }
  
-                return ServiceResult<Topic>.Success(topic);
+                return ServiceResult<Topic>.Ok(topic);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex,
                     "Erreur lors du chargement du sujet {TopicId}.", id);
-                return ServiceResult<Topic>.Failure(
-                    "Le sujet n'a pas pu être chargé.");
+				return ServiceResult<Topic>.Fail(
+					"Le sujet n'a pas pu être chargé.");
             }
         }
  
@@ -73,16 +74,16 @@ namespace FR_WS2_BaseLab.Services.Implementations
         {
             var topic = await _context.Topics.FindAsync(id);
             return topic is null
-                ? ServiceResult<Topic>.Failure("Le sujet est introuvable.")
-                : ServiceResult<Topic>.Success(topic);
+                ? ServiceResult<Topic>.Fail("Le sujet est introuvable.")
+                : ServiceResult<Topic>.Ok(topic);
         }
  
         // Création d'un sujet.
-        public async Task<ServiceResult> CreateAsync(Topic topic, string? userId)
+        public async Task<ServiceResult<Topic>> CreateAsync(Topic topic, string? userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
             {
-                return ServiceResult.Failure("Vous devez être connecté.");
+                return ServiceResult<Topic>.Fail("Vous devez être connecté.");
             }
  
             try
@@ -96,27 +97,27 @@ namespace FR_WS2_BaseLab.Services.Implementations
                 _context.Topics.Add(topic);
                 await _context.SaveChangesAsync();
  
-                return ServiceResult.Success();
+                return ServiceResult<Topic>.Ok(topic);
             }
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Erreur BD lors de la création d'un sujet.");
-                return ServiceResult.Failure("Le sujet n'a pas pu être créé.");
+                return ServiceResult<Topic>.Fail("Le sujet n'a pas pu être créé.");
             }
         }
  
         // Modification d'un sujet.
-        public async Task<ServiceResult> UpdateAsync(int id, Topic topic)
+        public async Task<ServiceResult<Topic>> UpdateAsync(int id, Topic topic)
         {
             if (id != topic.Id)
             {
-                return ServiceResult.Failure("L'identifiant reçu est invalide.");
+                return ServiceResult<Topic>.Fail("L'identifiant reçu est invalide.");
             }
  
             var existing = await _context.Topics.FindAsync(id);
             if (existing is null)
             {
-                return ServiceResult.Failure("Le sujet est introuvable.");
+                return ServiceResult<Topic>.Fail("Le sujet est introuvable.");
             }
  
             try
@@ -127,36 +128,36 @@ namespace FR_WS2_BaseLab.Services.Implementations
                 existing.Inactive = topic.Inactive;
  
                 await _context.SaveChangesAsync();
-                return ServiceResult.Success();
+                return ServiceResult<Topic>.Ok(existing);
             }
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex,
                     "Erreur BD lors de la modification du sujet {TopicId}.", id);
-                return ServiceResult.Failure("Le sujet n'a pas pu être modifié.");
+                return ServiceResult<Topic>.Fail("Le sujet n'a pas pu être modifié.");
             }
         }
  
         // Suppression d'un sujet.
-        public async Task<ServiceResult> DeleteAsync(int id)
+        public async Task<ServiceResult<Topic>>DeleteAsync(int id)
         {
             var topic = await _context.Topics.FindAsync(id);
             if (topic is null)
             {
-                return ServiceResult.Failure("Le sujet est introuvable.");
+                return ServiceResult<Topic>.Fail("Le sujet est introuvable.");
             }
  
             try
             {
                 _context.Topics.Remove(topic);
                 await _context.SaveChangesAsync();
-                return ServiceResult.Success();
+                return ServiceResult<Topic>.Ok(topic);
             }
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex,
                     "Erreur BD lors de la suppression du sujet {TopicId}.", id);
-                return ServiceResult.Failure(
+                return ServiceResult<Topic>.Fail(
                     "Le sujet ne peut pas être supprimé. Il contient peut-être des messages.");
             }
         }

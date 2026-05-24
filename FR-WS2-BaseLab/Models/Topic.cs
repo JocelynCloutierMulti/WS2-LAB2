@@ -9,7 +9,7 @@ public partial class Topic
 
     public int CatId { get; set; }
 
-    public string? UserId { get; set; }
+    public string UserId { get; set; } = null!;
 
     public bool Inactive { get; set; }
 
@@ -21,9 +21,9 @@ public partial class Topic
 
     public int Views { get; set; }
 
-    public virtual Category? Cat { get; set; }
+    public virtual Category Cat { get; set; } = null!;
 
     public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
 
-    public virtual AspNetUser? User { get; set; }
+    public virtual AspNetUser User { get; set; } = null!;
 }
