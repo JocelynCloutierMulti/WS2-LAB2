@@ -16,7 +16,7 @@ public partial class CategoryImage
     public int CategoryId { get; set;}
 
     [Required]
-    [StringLength(225)]
+    [StringLength(255)]
     public string FileName { get; set; } = null!;
 
     [Required]
@@ -27,10 +27,10 @@ public partial class CategoryImage
     [StringLength(100)]
     public string ContentType { get; set; } = null!;
 
-    [Required]
-    public long SizeInBytes { get; set; }
+    [Required] 
+    public long SizeBytes { get; set; }
 
-    [StringLength(150)]
+    [StringLength(255)]
     public string? AltText { get; set; }
 
     [Required]

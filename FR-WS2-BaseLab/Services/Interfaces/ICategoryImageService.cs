@@ -1,6 +1,7 @@
-﻿namespace FR_WS2_BaseLab.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using FR_WS2_BaseLab.Models.ViewModels;
+namespace FR_WS2_BaseLab.Services.Interfaces;
+
 public interface ICategoryImageService
 {
 	Task<IReadOnlyList<CategoryImageDto>> GetForCategoryAsync(int categoryId);

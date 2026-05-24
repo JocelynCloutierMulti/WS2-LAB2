@@ -119,10 +119,11 @@ public partial class FrWs2BaselabContext : DbContext
         modelBuilder.Entity<CategoryImage>(entity =>
         {
             entity.HasIndex(e => e.CategoryId, "IX_CategoryImages_CategoryId");
-
-            entity.Property(e => e.AltText).HasMaxLength(120);
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
+            entity.Property(e => e.AltText).HasMaxLength(255);
             entity.Property(e => e.ContentType).HasMaxLength(100);
-            entity.Property(e => e.FileName).HasMaxLength(160);
+            entity.Property(e => e.FileName).HasMaxLength(255);
             entity.Property(e => e.OriginalFileName).HasMaxLength(255);
             entity.Property(e => e.UploadedAtUtc).HasDefaultValueSql("(sysutcdatetime())");
 
@@ -133,7 +134,7 @@ public partial class FrWs2BaselabContext : DbContext
         {
             entity.HasKey(e => e.FileName);
 
-            entity.Property(e => e.FileName).HasMaxLength(256);
+            entity.Property(e => e.FileName).HasMaxLength(255);
             entity.Property(e => e.CatId).HasColumnName("CatID");
 
             entity.HasOne(d => d.Cat).WithMany(p => p.Images)

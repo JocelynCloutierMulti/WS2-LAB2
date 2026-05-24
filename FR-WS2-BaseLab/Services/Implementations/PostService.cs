@@ -1,7 +1,6 @@
 using FR_WS2_BaseLab.Models;
 using FR_WS2_BaseLab.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Exchange.WebServices.Data;
 
 namespace FR_WS2_BaseLab.Services.Implementations
 {
@@ -26,7 +25,7 @@ namespace FR_WS2_BaseLab.Services.Implementations
 				var posts = await _context.Posts
 					.AsNoTracking()
 					.Include(p => p.User)
-					.Where(p => p.TopId == topicId)   // <-- filtre corrigé
+					.Where(p => p.TopId == topicId)   
 					.OrderBy(p => p.Date)
 					.ToListAsync();
 
@@ -36,7 +35,7 @@ namespace FR_WS2_BaseLab.Services.Implementations
 			{
 				_logger.LogError(ex,
 					"Erreur lors du chargement des messages du sujet {TopicId}.", topicId);
-				return ServiceResult<List<Post>>.Failure(
+				return ServiceResult<List<Post>>.Fail(
 					"Les messages n'ont pas pu être chargés.");
 			}
 		}
@@ -87,7 +86,6 @@ namespace FR_WS2_BaseLab.Services.Implementations
 
 			try
 			{
-				// Valeurs définies côté serveur (anti-manipulation).
 				post.UserId = userId;
 				post.Date = DateOnly.FromDateTime(DateTime.Now);
 				post.Inactive = false;

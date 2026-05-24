@@ -24,6 +24,8 @@ public class Program
 
 		builder.Services.AddTransient<IApplicationEmailSender, MailKitEmailSender>();
 		builder.Services.AddTransient<IEmailSender, IdentityEmailSender>();
+
+        builder.Services.AddScoped<ICategoryImageService, CategoryImageService>();
         //tt
 		builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));  

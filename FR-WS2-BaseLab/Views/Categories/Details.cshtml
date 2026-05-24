@@ -4,39 +4,72 @@
     ViewData["Title"] = "Details";
 }
 
+@Html.AntiForgeryToken()
+
 <h1>Details</h1>
 
 <div>
     <h4>Category</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Inactive)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Inactive)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Name)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Name)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Description)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Description)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Image)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Image)
         </dd>
     </dl>
 </div>
+
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>
+
+<section class="mt-4" id="category-images-section"
+         data-category-id="@Model?.Id">
+    <h2>Images de la catégorie</h2>
+
+    <form id="image-upload-form" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="image-file" class="form-label">Image</label>
+            <input id="image-file" name="file" type="file"
+                   class="form-control"
+                   accept="image/png,image/jpeg,image/webp" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="image-alt" class="form-label">Texte alternatif</label>
+            <input id="image-alt" name="altText" type="text"
+                   class="form-control"
+                   maxlength="255">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Téléverser</button>
+    </form>
+
+    <div id="image-upload-status" class="mt-3"></div>
+    <div id="category-images-gallery" class="row g-3 mt-2"></div>
+</section>
+
+@section Scripts {
+    <script src="~/js/category-images.js" asp-append-version="true"></script>
+}

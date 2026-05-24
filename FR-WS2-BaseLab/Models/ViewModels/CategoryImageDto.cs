@@ -7,9 +7,9 @@
 
 		public string Url { get; set; } = string.Empty;
 	    
-	    public string OrginalFileName { get; set;} = string.Empty;
+	    public string OriginalFileName { get; set;} = string.Empty;
 
-		public string contentType { get; set; } = string.Empty;
+		public string ContentType { get; set; } = string.Empty;
 
 	    public long SizeBytes { get; set; }
 

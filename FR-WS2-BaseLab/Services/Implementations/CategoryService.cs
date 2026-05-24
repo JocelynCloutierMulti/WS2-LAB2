@@ -1,139 +1,139 @@
 ﻿using FR_WS2_BaseLab.Models;
+using FR_WS2_BaseLab.Services;
 using FR_WS2_BaseLab.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Exchange.WebServices.Data;
 
 namespace FR_WS2_BaseLab.Services.Implementations
 {
-	public class CategoryService : ICategoryService
-	{
-		private readonly FrWs2BaselabContext _context;
-		private readonly ILogger<CategoryService> _logger;
+    public class CategoryService : ICategoryService
+    {
+        private readonly FrWs2BaselabContext _context;
+        private readonly ILogger<CategoryService> _logger;
 
-		public CategoryService(
-			FrWs2BaselabContext context,
-			ILogger<CategoryService> logger)
-		{
-			_context = context;
-			_logger = logger;
-		}
+        public CategoryService(
+            FrWs2BaselabContext context,
+            ILogger<CategoryService> logger)
+        {
+            _context = context;
+            _logger = logger;
+        }
 
-		public async Task<ServiceResult<List<Category>>> GetAllAsync()
-		{
-			try
-			{
-				var categories = await _context.Categories
-					.AsNoTracking()
-					.OrderBy(c => c.Name)
-					.ToListAsync();
+        public async Task<ServiceResult<List<Category>>> GetAllAsync()
+        {
+            try
+            {
+                var categories = await _context.Categories
+                    .AsNoTracking()
+                    .OrderBy(c => c.Name)
+                    .ToListAsync();
 
-				return ServiceResult<List<Category>>.Success(categories);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Erreur lors du chargement des catégories.");
-				return ServiceResult<List<Category>>.Failure(
-					"Les catégories n'ont pas pu être chargées.");
-			}
-		}
+                return ServiceResult<List<Category>>.Ok(categories);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors du chargement des catégories.");
+                return ServiceResult<List<Category>>.Fail(
+                    "Les catégories n'ont pas pu être chargées.");
+            }
+        }
 
-		public async Task<ServiceResult<Category>> GetByIdAsync(int id)
-		{
-			try
-			{
-				var category = await _context.Categories
-					.AsNoTracking()
-					.FirstOrDefaultAsync(c => c.Id == id);
+        public async Task<ServiceResult<Category>> GetByIdAsync(int id)
+        {
+            try
+            {
+                var category = await _context.Categories
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.Id == id);
 
-				if (category is null)
-				{
-					return ServiceResult<Category>.Failure("La catégorie est introuvable.");
-				}
+                if (category is null)
+                {
+                    return ServiceResult<Category>.Fail("La catégorie est introuvable.");
+                }
 
-				return ServiceResult<Category>.Success(category);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex,
-					"Erreur lors du chargement de la catégorie {CategoryId}.", id);
-				return ServiceResult<Category>.Failure(
-					"La catégorie n'a pas pu être chargée.");
-			}
-		}
+                return ServiceResult<Category>.Ok(category);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Erreur lors du chargement de la catégorie {CategoryId}.", id);
+                return ServiceResult<Category>.Fail(
+                    "La catégorie n'a pas pu être chargée.");
+            }
+        }
 
-		public async Task<ServiceResult> CreateAsync(Category category)
-		{
-			try
-			{
-				category.Inactive = false;
-				_context.Categories.Add(category);
-				await _context.SaveChangesAsync();
-				return ServiceResult.Success();
-			}
-			catch (DbUpdateException ex)
-			{
-				_logger.LogError(ex, "Erreur BD lors de la création d'une catégorie.");
-				return ServiceResult.Failure("La catégorie n'a pas pu être créée.");
-			}
-		}
+        public async Task<ServiceResult> CreateAsync(Category category)
+        {
+            try
+            {
+                category.Inactive = false;
+                _context.Categories.Add(category);
+                await _context.SaveChangesAsync();
+                return ServiceResult.Ok();
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Erreur BD lors de la création d'une catégorie.");
+                return ServiceResult.Fail("La catégorie n'a pas pu être créée.");
+            }
+        }
 
-		public async Task<ServiceResult> UpdateAsync(int id, Category category)
-		{
-			if (id != category.Id)
-			{
-				return ServiceResult.Failure("L'identifiant reçu est invalide.");
-			}
+        public async Task<ServiceResult> UpdateAsync(int id, Category category)
+        {
+            if (id != category.Id)
+            {
+                return ServiceResult.Fail("L'identifiant reçu est invalide.");
+            }
 
-			var existing = await _context.Categories.FindAsync(id);
-			if (existing is null)
-			{
-				return ServiceResult.Failure("La catégorie est introuvable.");
-			}
+            var existing = await _context.Categories.FindAsync(id);
+            if (existing is null)
+            {
+                return ServiceResult.Fail("La catégorie est introuvable.");
+            }
 
-			try
-			{
-				existing.Name = category.Name;
-				existing.Description = category.Description;
-				existing.Image = category.Image;
-				existing.Inactive = category.Inactive;
+            try
+            {
+                existing.Name = category.Name;
+                existing.Description = category.Description;
+                existing.Image = category.Image;
+                existing.Inactive = category.Inactive;
 
-				await _context.SaveChangesAsync();
-				return ServiceResult.Success();
-			}
-			catch (DbUpdateException ex)
-			{
-				_logger.LogError(ex,
-					"Erreur BD lors de la modification de la catégorie {CategoryId}.", id);
-				return ServiceResult.Failure("La catégorie n'a pas pu être modifiée.");
-			}
-		}
+                await _context.SaveChangesAsync();
+                return ServiceResult.Ok();
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex,
+                    "Erreur BD lors de la modification de la catégorie {CategoryId}.", id);
+                return ServiceResult.Fail("La catégorie n'a pas pu être modifiée.");
+            }
+        }
 
-		public async Task<ServiceResult> DeleteAsync(int id)
-		{
-			var category = await _context.Categories.FindAsync(id);
-			if (category is null)
-			{
-				return ServiceResult.Failure("La catégorie est introuvable.");
-			}
+        public async Task<ServiceResult> DeleteAsync(int id)
+        {
+            var category = await _context.Categories.FindAsync(id);
+            if (category is null)
+            {
+                return ServiceResult.Fail("La catégorie est introuvable.");
+            }
 
-			try
-			{
-				_context.Categories.Remove(category);
-				await _context.SaveChangesAsync();
-				return ServiceResult.Success();
-			}
-			catch (DbUpdateException ex)
-			{
-				_logger.LogError(ex,
-					"Erreur BD lors de la suppression de la catégorie {CategoryId}.", id);
-				return ServiceResult.Failure(
-					"La catégorie ne peut pas être supprimée. Elle contient peut-être des sujets.");
-			}
-		}
+            try
+            {
+                _context.Categories.Remove(category);
+                await _context.SaveChangesAsync();
+                return ServiceResult.Ok();
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex,
+                    "Erreur BD lors de la suppression de la catégorie {CategoryId}.", id);
+                return ServiceResult.Fail(
+                    "La catégorie ne peut pas être supprimée. Elle contient peut-être des sujets.");
+            }
+        }
 
-		public async Task<bool> ExistsAsync(int id)
-		{
-			return await _context.Categories.AnyAsync(c => c.Id == id);
-		}
-	}
+        public async Task<bool> ExistsAsync(int id)
+        {
+            return await _context.Categories.AnyAsync(c => c.Id == id);
+        }
+    }
 }
