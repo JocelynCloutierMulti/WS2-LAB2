@@ -28,7 +28,7 @@ public partial class CategoryImage
     public string ContentType { get; set; } = null!;
 
     [Required] 
-    public long SizeBytes { get; set; }
+    public long SizeInBytes { get; set; }
 
     [StringLength(255)]
     public string? AltText { get; set; }

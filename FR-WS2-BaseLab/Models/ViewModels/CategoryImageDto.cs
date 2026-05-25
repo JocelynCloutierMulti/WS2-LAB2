@@ -11,7 +11,7 @@
 
 		public string ContentType { get; set; } = string.Empty;
 
-	    public long SizeBytes { get; set; }
+	    public long SizeInBytes { get; set; }
 
 	    public string? AltText { get; set; }
 

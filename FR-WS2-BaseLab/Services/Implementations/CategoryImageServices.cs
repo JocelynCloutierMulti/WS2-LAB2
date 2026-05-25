@@ -64,7 +64,7 @@ public class CategoryImageService : ICategoryImageService
 
             ContentType = image.ContentType,
 
-            SizeBytes = image.SizeBytes,
+            SizeInBytes = image.SizeInBytes,
 
             AltText = image.AltText
 
@@ -166,7 +166,7 @@ public class CategoryImageService : ICategoryImageService
 
                 ContentType = file.ContentType,
 
-                SizeBytes = file.Length,
+                SizeInBytes = file.Length,
 
                 AltText = altText,
 
