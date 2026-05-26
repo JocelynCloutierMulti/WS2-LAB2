@@ -35,6 +35,8 @@ public partial class FrWs2BaselabContext : DbContext
 
     public virtual DbSet<Topic> Topics { get; set; }
 
+    public virtual DbSet<CategoryImage> CategoryImages { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:FR-WS2-BASELAB");
 
@@ -119,6 +121,16 @@ public partial class FrWs2BaselabContext : DbContext
             entity.Property(e => e.Image).HasMaxLength(250);
             entity.Property(e => e.Inactive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<CategoryImage>(entity => {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
+            entity.HasOne(e => e.Category)
+              .WithMany()
+              .HasForeignKey(e => e.CategoryId)
+              .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Image>(entity =>
