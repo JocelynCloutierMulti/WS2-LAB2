@@ -6,18 +6,28 @@
 
 @Html.AntiForgeryToken()
 
-<h1>Details</h1>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h1 class="h3 m-0"><i class="bi bi-info-circle"></i> Category details</h1>
+</div>
 
-<div>
-    <h4>Category</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Inactive)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Inactive)
-        </dd>
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h4 class="card-title">Category</h4>
+        <hr />
+        <dl class="row mb-0">
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.Inactive)
+            </dt>
+            <dd class="col-sm-10">
+                @if (Model.Inactive)
+                {
+                    <span class="badge bg-warning text-dark">Inactive</span>
+                }
+                else
+                {
+                    <span class="badge bg-success">Active</span>
+                }
+            </dd>
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Name)
         </dt>
@@ -36,38 +46,45 @@
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Image)
         </dd>
-    </dl>
+        </dl>
+    </div>
 </div>
 
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+<div class="d-flex gap-2 flex-wrap mt-3">
+    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-pencil"></i> Edit
+    </a>
+    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to List
+    </a>
 </div>
 
-<section class="mt-4" id="category-images-section"
+<section class="mt-4 card" id="category-images-section"
          data-category-id="@Model?.Id">
-    <h2>Images de la catégorie</h2>
+    <div class="card-body">
+        <h2 class="h5 card-title">Images de la catégorie</h2>
 
-    <form id="image-upload-form" enctype="multipart/form-data">
-        <div class="mb-3">
-            <label for="image-file" class="form-label">Image</label>
-            <input id="image-file" name="file" type="file"
-                   class="form-control"
-                   accept="image/png,image/jpeg,image/webp" required>
-        </div>
+        <form id="image-upload-form" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="image-file" class="form-label">Image</label>
+                <input id="image-file" name="file" type="file"
+                       class="form-control"
+                       accept="image/png,image/jpeg,image/webp" required>
+            </div>
 
-        <div class="mb-3">
-            <label for="image-alt" class="form-label">Texte alternatif</label>
-            <input id="image-alt" name="altText" type="text"
-                   class="form-control"
-                   maxlength="255">
-        </div>
+            <div class="mb-3">
+                <label for="image-alt" class="form-label">Texte alternatif</label>
+                <input id="image-alt" name="altText" type="text"
+                       class="form-control"
+                       maxlength="255">
+            </div>
 
-        <button type="submit" class="btn btn-primary">Téléverser</button>
-    </form>
+            <button type="submit" class="btn btn-primary">Téléverser</button>
+        </form>
 
-    <div id="image-upload-status" class="mt-3"></div>
-    <div id="category-images-gallery" class="row g-3 mt-2"></div>
+        <div id="image-upload-status" class="mt-3"></div>
+        <div id="category-images-gallery" class="row g-3 mt-2"></div>
+</div>
 </section>
 
 @section Scripts {

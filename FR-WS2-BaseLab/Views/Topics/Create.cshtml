@@ -4,12 +4,14 @@
     ViewData["Title"] = "Create";
 }
 
-<h1>Create</h1>
+<h1 class="h3">Create Topic</h1>
 
 <h4>Topic</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="CatId" value="@ViewData["CategoryId"]"/>
@@ -29,9 +31,13 @@
         </form>
     </div>
 </div>
+    </div>
+</div>
 
 <div>
-    <a asp-action="Index" asp-route-id= "@ViewData["CategoryId"]">Back to List</a>
+    <a asp-action="Index" asp-route-id="@ViewData["CategoryId"]" class="btn btn-outline-secondary mt-3">
+        <i class="bi bi-arrow-left"></i> Back to List
+    </a>
 </div>
 
 @section Scripts {
