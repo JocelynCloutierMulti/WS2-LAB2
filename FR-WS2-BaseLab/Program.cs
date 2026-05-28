@@ -38,6 +38,8 @@ public class Program
 
         builder.Services.AddScoped<IPostService, PostService>();
 
+        builder.Services.AddScoped<ICategoryImageService, CategoryImageService>();
+
         builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
 
         builder.Services.AddTransient<IApplicationEmailSender, MailKitEmailSender>();

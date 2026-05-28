@@ -127,6 +127,13 @@ public partial class FrWs2BaselabContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
+            entity.Property(e => e.FileName).HasMaxLength(255);
+            entity.Property(e => e.OriginalFileName)
+                  .HasMaxLength(255);
+            entity.Property(e => e.ContentType)
+                  .HasMaxLength(100);
+            entity.Property(e => e.AltText)
+                  .HasMaxLength(255);
             entity.HasOne(e => e.Category)
               .WithMany()
               .HasForeignKey(e => e.CategoryId)
