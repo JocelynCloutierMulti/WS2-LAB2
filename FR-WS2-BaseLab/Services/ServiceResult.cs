@@ -1,4 +1,6 @@
-﻿namespace FR_WS2_BaseLab.Services;
+﻿using FR_WS2_BaseLab.Models.ViewModels;
+
+namespace FR_WS2_BaseLab.Services;
 
 public class ServiceResult<T>
 {
@@ -23,6 +25,8 @@ public class ServiceResult<T>
     {
         return new ServiceResult<T>(false, default, errorMessage);
     }
+
+ 
 }
 
 
